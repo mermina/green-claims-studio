@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Green Claims → Findability Studio — compliant AND findable, in one pass</title>
+<meta name="description" content="Paste your green marketing copy. Pass 1 flags what's risky under the EU ECGT rule. Pass 2 turns the real claims into compliant, machine-readable credentials that Google and AI search can cite." />
+<style>
+  :root{
+    --bg:#F5F7F2; --card:#FFFFFF; --ink:#1F2A24; --ink-soft:#5B6A60;
+    --leaf:#3E7A52; --leaf-deep:#2C5C3C; --line:#E2E8DD;
+    --red:#C0413B; --red-bg:#FBE9E7; --amber:#B8791A; --amber-bg:#FBF1DD;
+    --ok:#2F7D4F; --green-bg:#E7F2EA; --gold:#B8860B; --pro-bg:#FBF6E9; --code:#0E2A1B;
+    --radius:14px; --shadow:0 8px 30px rgba(31,42,36,.08);
+    --serif:Georgia,"Times New Roman",serif; --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.55;padding:0 0 4rem}
+  .wrap{max-width:980px;margin:0 auto;padding:0 1.2rem}
+  header.top{background:linear-gradient(135deg,var(--leaf-deep),var(--leaf));color:#fff;padding:2.4rem 0 2.6rem}
+  .badge{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    font-size:.74rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.3rem .7rem;border-radius:999px;margin-bottom:1rem}
+  header.top h1{font-family:var(--serif);font-size:clamp(1.7rem,4vw,2.5rem);font-weight:600;line-height:1.15;max-width:22ch}
+  header.top p{margin-top:.7rem;max-width:64ch;color:rgba(255,255,255,.92);font-size:1.02rem}
+  header.top .meta{margin-top:1rem;font-size:.85rem;color:rgba(255,255,255,.8)}
+
+  /* step rail */
+  .steps{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.3rem}
+  .step{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:rgba(255,255,255,.75);background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:.35rem .8rem;cursor:pointer;transition:.15s}
+  .step:hover{color:#fff;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.45)}
+  .step .d{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-weight:700;font-size:.72rem}
+  .step.on{color:#fff;background:rgba(255,255,255,.2)}
+  .step.on .d{background:#fff;color:var(--leaf-deep)}
+
+  main{margin-top:-1.4rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.4rem 1.5rem;margin-bottom:1.3rem}
+  .card h2{font-family:var(--serif);font-size:1.25rem;margin-bottom:.5rem}
+  .kick{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--leaf);margin-bottom:.15rem}
+  label.fld{display:block;font-weight:600;font-size:.92rem;margin-bottom:.45rem}
+  textarea{width:100%;min-height:150px;padding:.9rem 1rem;border:1.5px solid var(--line);border-radius:12px;
+    font:inherit;font-size:.98rem;background:#FCFDFB;color:var(--ink);resize:vertical;line-height:1.6}
+  textarea:focus{outline:none;border-color:var(--leaf)}
+  .row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-top:.9rem}
+  button{font:inherit;font-weight:600;font-size:.97rem;border-radius:999px;border:1.5px solid transparent;cursor:pointer;padding:.7rem 1.4rem;transition:.2s;scroll-margin-top:18px}
+  .btn-primary{background:var(--leaf);color:#fff}
+  .btn-primary:hover{background:var(--leaf-deep)}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink-soft)}
+  .btn-ghost:hover{border-color:var(--leaf);color:var(--leaf)}
+  .btn-big{font-size:1.02rem;padding:.85rem 1.7rem}
+  .btn-sample{background:var(--pro-bg);border-color:var(--gold);color:#8A6608}
+  .btn-sample:hover{background:#F5EFD8;border-color:var(--gold)}
+  .samplecap{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.3rem}
+  .bn{display:inline-grid;place-items:center;width:1.55em;height:1.55em;border-radius:50%;background:#fff;color:var(--leaf-deep);font-weight:700;font-size:.82em;margin-right:.55em;vertical-align:-.15em}
+
+  #summary,#pass2,#pass3{display:none}
+  .meter{display:flex;gap:.6rem;flex-wrap:wrap;margin:.4rem 0 1rem}
+  .pill{display:flex;align-items:center;gap:.45rem;font-weight:600;font-size:.9rem;padding:.45rem .8rem;border-radius:999px}
+  .pill .n{font-family:var(--serif);font-size:1.05rem}
+  .pill.red{background:var(--red-bg);color:var(--red)}
+  .pill.amber{background:var(--amber-bg);color:var(--amber)}
+  .pill.ok{background:var(--green-bg);color:var(--ok)}
+  .verdict{font-weight:600;margin-bottom:.3rem}
+
+  .preview{background:#FCFDFB;border:1px solid var(--line);border-radius:12px;padding:1rem 1.1rem;line-height:1.9;font-size:1rem;white-space:pre-wrap}
+  mark{padding:.05em .25em;border-radius:5px;font-weight:600;cursor:help}
+  mark.red{background:var(--red-bg);color:var(--red);border-bottom:2px solid var(--red)}
+  mark.amber{background:var(--amber-bg);color:var(--amber);border-bottom:2px solid var(--amber)}
+  .rep{background:var(--green-bg);color:var(--leaf-deep);padding:.05em .25em;border-radius:5px;font-weight:600;cursor:help}
+
+  .finding{border:1px solid var(--line);border-left-width:5px;border-radius:10px;padding:.85rem 1rem;margin-bottom:.7rem;background:#fff}
+  .finding.red{border-left-color:var(--red)}
+  .finding.amber{border-left-color:var(--amber)}
+  .finding .head{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.35rem}
+  .finding .term{font-weight:700;font-size:1.02rem}
+  .tag{font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:.18rem .5rem;border-radius:6px}
+  .tag.red{background:var(--red-bg);color:var(--red)}
+  .tag.amber{background:var(--amber-bg);color:var(--amber)}
+  .tag.cat{background:#EEF2EC;color:var(--ink-soft)}
+  .tag.count{background:#EEF2EC;color:var(--ink-soft)}
+  .finding .why{font-size:.92rem;color:var(--ink-soft)}
+  .finding .fixline{font-size:.9rem;margin-top:.35rem}
+  .finding .fixline b{color:var(--leaf-deep)}
+
+  .handoff{background:linear-gradient(135deg,#EAF3EC,#F3F8F0);border:1px solid var(--line);text-align:center}
+  .handoff h2{color:var(--leaf-deep)}
+  .handoff p{color:var(--ink-soft);max-width:60ch;margin:0 auto .8rem}
+
+  h3.sub{font-family:var(--serif);font-size:1.08rem;margin:1.3rem 0 .5rem;color:var(--leaf-deep)}
+  h3.sub:first-child{margin-top:.2rem}
+  pre{background:var(--code);color:#CDEAD6;border-radius:9px;padding:.9rem 1rem;font-size:.78rem;line-height:1.5;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+  .copybar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
+  .btn-copy{font-size:.8rem;padding:.4rem .9rem;background:#fff;border-color:var(--line);color:var(--ink-soft)}
+  .btn-copy:hover{border-color:var(--leaf);color:var(--leaf)}
+  ul.check{list-style:none;margin:.3rem 0}
+  ul.check li{padding:.45rem 0 .45rem 1.7rem;position:relative;border-bottom:1px solid var(--line);font-size:.92rem}
+  ul.check li:before{content:"◑";position:absolute;left:0;top:.45rem;color:var(--amber);font-weight:700}
+  ul.check li b{color:var(--ink)}
+  ul.check li span.chk{color:var(--ink-soft)}
+  .note{background:#F0F5EF;border-left:4px solid var(--leaf);border-radius:8px;padding:.9rem 1.1rem;margin:.8rem 0;font-size:.9rem}
+  .say{background:var(--pro-bg);border:1px dashed var(--gold);border-radius:10px;padding:1rem 1.2rem;margin:.6rem 0;font-size:.92rem}
+  .say .h{font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
+  .say q{font-style:italic;color:var(--ink)}
+  .scoretop{display:flex;align-items:baseline;gap:.5rem;margin:.4rem 0 .8rem}
+  .scoretop .big{font-family:var(--serif);font-size:2rem;font-weight:700;line-height:1;color:var(--leaf-deep)}
+  .scoretop .lbl{color:var(--ink-soft);font-size:.9rem}
+  ul.scan{list-style:none;margin:.4rem 0 .6rem}
+  ul.scan li{padding:.55rem 0 .55rem 1.9rem;position:relative;border-bottom:1px solid var(--line);font-size:.93rem}
+  ul.scan li:before{position:absolute;left:0;top:.55rem;font-weight:700}
+  ul.scan li.have:before{content:"✓";color:var(--ok)}
+  ul.scan li.part:before{content:"◑";color:var(--amber)}
+  ul.scan li.need:before{content:"✗";color:var(--red)}
+  ul.scan .lbl{font-weight:700}
+  ul.scan .det{color:var(--ink-soft)}
+  ul.scan .fix{color:var(--leaf-deep);font-size:.85rem;display:block;margin-top:.15rem}
+  ul.tips{margin:.3rem 0 .3rem 1.1rem;font-size:.92rem}
+  ul.tips li{margin:.35rem 0}
+
+  .toggle{display:flex;gap:.5rem;align-items:center;font-size:.85rem;color:var(--ink-soft);margin-top:.5rem}
+  .empty{color:var(--ink-soft);font-style:italic}
+  .disclaimer{font-size:.8rem;color:var(--ink-soft);background:#F0F3EE;border-radius:10px;padding:.8rem 1rem;margin-top:.6rem}
+  footer{margin-top:2rem;font-size:.8rem;color:var(--ink-soft);text-align:center}
+  .legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.82rem;color:var(--ink-soft);margin-top:.6rem}
+  .legend span{display:inline-flex;align-items:center;gap:.35rem}
+  .swatch{width:14px;height:14px;border-radius:4px;display:inline-block}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <span class="badge">EU ECGT Directive · in force 27 Sept 2026</span>
+    <h1>Green Claims → Findability Studio</h1>
+    <p>For businesses whose “green” is the real thing. From 2026, the EU’s Green Claims rules — the <b>ECGT Directive</b> — turn vague eco-wording into a <b>legal risk</b>, even when your product truly is sustainable. This tool finds the risky words, <b>rewrites them to be true and provable</b>, and turns your real certificates into data that <b>Google and AI search can find and cite</b>. So your good work <b>protects you, instead of getting you into trouble</b>.</p>
+    <p class="meta">🔒 100% private — your text never leaves your browser. Nothing is uploaded or stored.</p>
+    <div class="steps">
+      <div class="step on" id="stp1"><span class="d">1</span> Scan my claims</div>
+      <div class="step" id="stp2"><span class="d">2</span> Check my page is findable</div>
+      <div class="step" id="stp3"><span class="d">3</span> Rewrite + build schema</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- INPUT -->
+  <section class="card" id="card1">
+    <div class="kick">Step 1 · Paste</div>
+    <h2>Paste your green copy</h2>
+    <label class="fld" for="input">Product description, web copy, label, or social caption</label>
+    <textarea id="input" spellcheck="false"></textarea>
+    <div class="row">
+      <button class="btn-primary" id="scanBtn"><span class="bn">1</span>Scan my claims →</button>
+      <button class="btn-ghost" id="sampleBtn">Load paper-cup example</button>
+      <button class="btn-ghost" id="clearBtn">Clear</button>
+    </div>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--red)"></i> High risk — remove or rework</span>
+      <span><i class="swatch" style="background:var(--amber)"></i> Needs proof — make specific</span>
+    </div>
+  </section>
+
+  <!-- PASS 1 RESULT -->
+  <section class="card" id="summary">
+    <div class="kick">Step 1 · Result — compliance</div>
+    <h2>What’s risky under the ECGT</h2>
+    <div class="verdict" id="verdict"></div>
+    <div class="meter" id="meter"></div>
+    <div class="preview" id="preview"></div>
+    <div id="findings" style="margin-top:1rem"></div>
+
+    <div class="row" style="margin-top:1.2rem">
+      <button class="btn-primary btn-big" id="checkPageBtn"><span class="bn">2</span>Check my page is findable →</button>
+    </div>
+    <p style="font-size:.85rem;color:var(--ink-soft);margin-top:.5rem">Next, check whether your live page actually shows these credentials to Google and AI — then we’ll rewrite everything.</p>
+  </section>
+
+  <!-- STEP 2: PAGE FINDABILITY -->
+  <section class="card" id="pass3">
+    <div class="kick">Step 2 · Check your live page</div>
+    <h2>Is your page findable by AI &amp; Google?</h2>
+    <p style="font-size:.92rem;color:var(--ink-soft);margin-bottom:.4rem">Paste your product page’s HTML source (in your browser: right-click → <i>View Page Source</i> → select all → copy). This checks the signals AI search and Google use to <b>extract, verify and cite</b> your credentials. Runs entirely in your browser.</p>
+
+    <div class="say">
+      <div class="h">★ How to say this to a client — honestly</div>
+      <q>“Google says structured data isn’t a direct ranking factor, and no special schema is required for AI Overviews. What changed in 2026 is that schema became an AI <b>trust &amp; entity-verification signal</b>: structured data makes your real credentials easier for AI and Google to <b>extract, verify and cite</b> — correlated with more citations, not a guarantee. We only mark up <b>genuine, specific</b> credentials, which is exactly what the ECGT requires. One fix, two wins.”</q>
+    </div>
+
+    <label class="fld" for="pageHtml" style="margin-top:.6rem">Your page’s HTML source <span style="font-weight:400;color:var(--ink-soft)">(not a web address — the actual source code)</span></label>
+    <textarea id="pageHtml" spellcheck="false" placeholder="Paste the full HTML SOURCE here — open your page, right-click → View Page Source → select all → copy. A URL like https://… won't work."></textarea>
+    <div class="row">
+      <button class="btn-primary" id="scanPageBtn">Scan page findability →</button>
+      <button class="btn-ghost" id="clearPageBtn">Clear</button>
+      <button class="btn-ghost" id="samplePageBtn">Try a sample page</button>
+    </div>
+
+    <div id="scanResult" style="display:none;margin-top:1rem">
+      <div class="scoretop"><span class="big" id="scoreN">0/7</span><span class="lbl" id="scoreLbl"></span></div>
+      <ul class="scan" id="scanList"></ul>
+    </div>
+
+    <h3 class="sub">Beyond schema — other ways to be found</h3>
+    <ul class="tips">
+      <li><b>Answer the buyer’s exact question in text.</b> A short “Is this cup compostable? Yes — certified EN 13432…” Q&amp;A (with FAQ schema) is what answer engines lift.</li>
+      <li><b>Link out to the certifier / official registry.</b> A link to your FSC or Vakinn listing (plus <code>sameAs</code>) lets a machine confirm you’re real — the entity-trust signal.</li>
+      <li><b>One canonical “Our materials &amp; claims” page.</b> One stable URL per claim beats the same words scattered across the site.</li>
+      <li><b>Put claims in text, never baked into product images.</b> A claim inside a photo is invisible to crawlers.</li>
+      <li><b>Be specific.</b> Vague claims aren’t cited <i>and</i> aren’t compliant — specificity serves both.</li>
+      <li><b>Claim your entity.</b> Google Business Profile + consistent name/details across the web help AI recognise the brand.</li>
+    </ul>
+
+    <div class="row" style="margin-top:1.1rem">
+      <button class="btn-primary btn-big" id="rewriteBtn"><span class="bn">3</span>Rewrite my claims + build the schema →</button>
+    </div>
+    <p style="font-size:.85rem;color:var(--ink-soft);margin-top:.5rem">Now fix the wording and generate the machine-readable version — including the schema this check said was missing.</p>
+  </section>
+
+  <!-- STEP 3: REWRITE + SCHEMA -->
+  <section class="card" id="pass2">
+    <div class="kick">Step 3 · Rewrite + machine-readable schema</div>
+    <h2>Your corrected, machine-readable version</h2>
+
+    <h3 class="sub">A · Your copy, rewritten to comply</h3>
+    <p style="font-size:.9rem;color:var(--ink-soft);margin-bottom:.5rem">Each risky phrase swapped for a specific, provable one. Bracketed <span class="rep">[…]</span> parts are where <b>your</b> real fact or certificate number goes.</p>
+    <div class="preview" id="corrected"></div>
+
+    <h3 class="sub">B · The same real credentials, made machine-readable (JSON-LD)</h3>
+    <p style="font-size:.9rem;color:var(--ink-soft);margin-bottom:.5rem">Paste this into your product page’s <code>&lt;head&gt;</code>. It’s the <code>Certification</code> markup Google &amp; AI use to verify and cite a claim — barely used yet, so it’s a real edge.</p>
+    <div class="copybar"><span style="font-size:.8rem;color:var(--ink-soft)">Starter schema — fill the brackets from your actual certificates</span><button class="btn-copy" id="copySchema">Copy schema</button></div>
+    <pre id="schema"></pre>
+
+    <h3 class="sub">C · Proof to hold on file before you publish</h3>
+    <p style="font-size:.9rem;color:var(--ink-soft);margin-bottom:.5rem">A rewrite is only safe once the evidence exists. These are the documents each kept claim needs.</p>
+    <ul class="check" id="needs"></ul>
+
+    <div class="note"><b>Why this is one job, not two:</b> the schema only works on <i>genuine, specific</i> credentials — the exact same thing the ECGT now demands. Fix the wording and you’ve also made it findable. <b>One fix, two wins.</b></div>
+  </section>
+
+  <!-- HANDOFF / CTA -->
+  <section class="card handoff">
+    <h2>This is the taste. A full audit looks like this.</h2>
+    <p>The studio shows the pattern on one block of text. A real engagement reviews every channel, matches each claim to your actual certificates, writes the drop-in copy, and delivers a branded dossier + the search-optimised proof page.</p>
+    <div style="text-align:center;margin-bottom:.4rem"><span class="samplecap">↓ Example — not a live scan</span></div>
+    <div class="row" style="justify-content:center">
+      <a id="dossierLink" href="sample-dossier.html"><button class="btn-sample btn-big">See a sample dossier (example) →</button></a>
+      <a id="contactLink" href="#"><button class="btn-primary btn-big">Get your audit</button></a>
+    </div>
+    <div class="disclaimer" style="margin-top:1rem">⚠️ This is a claims-hygiene helper, not legal advice. It flags common risk patterns under Directive (EU) 2024/825 (ECGT) and related packaging/consumer rules and points to the standards typically used to substantiate them; it does not certify legal compliance. For high-stakes claims, confirm with a qualified specialist or lawyer.</div>
+  </section>
+
+  <footer>
+    <span id="brandFoot"></span> · Green-claims &amp; findability · based on Directive (EU) 2024/825 (ECGT), applicable 27 September 2026, with references to PPWR (EU) 2025/40 and sector rules.
+  </footer>
+
+</main>
+
+<script>
+/* =====================================================================
+   ⚙️  CONFIG — EDIT THESE THREE LINES BEFORE YOU UPLOAD
+   ===================================================================== */
+const BRAND       = "[Your Brand]";                 // e.g. "Grænvottun" or keep GREEN_CLAIM
+const CONTACT_URL = "mailto:hello@yourbrand.is";    // your email or booking link
+const DOSSIER_URL = "sample-dossier.html";          // path to the sample dossier
+/* ===================================================================== */
+
+/* ============================================================
+   RISK DICTIONARY  — each entry:
+   t    : term (matched case-insensitively, whole word/phrase)
+   tier : 'red' (high risk) | 'amber' (needs proof)
+   cat  : category
+   why  : why it's risky
+   safe : short, conditional drop-in replacement (Pass 2 rewrite)
+   chk  : the certificate/standard to verify against
+   cert : {name, issuer} for JSON-LD generation (optional)
+   ============================================================ */
+const TERMS = [
+  // --- Vague / generic green ---
+  {t:"environmentally friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim — banned under the ECGT unless backed by specific evidence.",safe:"[state one proven fact, e.g. “80% recycled paper”]",chk:"LCA, recognised certification, or measured data."},
+  {t:"eco-friendly",tier:"red",cat:"Vague green",why:"Classic generic claim explicitly targeted by the ECGT — meaningless without proof.",safe:"[the concrete attribute you can prove]",chk:"Specific attribute evidence or recognised ecolabel (EU Ecolabel, Nordic Swan)."},
+  {t:"eco friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim with no specific basis — restricted under the ECGT.",safe:"[the specific, evidenced benefit]",chk:"Recognised ecolabel or measured evidence."},
+  {t:"planet-friendly",tier:"red",cat:"Vague green",why:"Vague feel-good claim; unsubstantiated by definition.",safe:"[a measurable fact — material, %, certification]",chk:"Specific attribute evidence."},
+  {t:"kind to the planet",tier:"red",cat:"Vague green",why:"Emotional, unprovable environmental claim.",safe:"[what you actually do, specifically]",chk:"Measured evidence for the specific action."},
+  {t:"good for the planet",tier:"red",cat:"Vague green",why:"Broad environmental-benefit claim with no evidence.",safe:"[the specific, verifiable benefit]",chk:"LCA or measured evidence."},
+  {t:"earth-friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim — unsubstantiated.",safe:"[a measurable, provable attribute]",chk:"Specific attribute evidence."},
+  {t:"sustainable",tier:"amber",cat:"Vague green",why:"One of the most-used vague terms; allowed only if specific and substantiated.",safe:"[specific practice, e.g. “FSC-certified board”]",chk:"Evidence for the specific practice (certification or measured data)."},
+  {t:"sustainably",tier:"amber",cat:"Vague green",why:"Same risk as 'sustainable' — needs a specific, evidenced basis.",safe:"[the specific practice + its proof]",chk:"Certification or measured data for the practice."},
+  {t:"natural",tier:"amber",cat:"Vague green",why:"Implies a benefit that's rarely defined or proven.",safe:"[specific material fact, e.g. “unbleached paper board”]",chk:"Cosmetics: ISO 16128 or COSMOS. Food: ingredient evidence."},
+  {t:"green",tier:"amber",cat:"Vague green",why:"Generic environmental signalling; risky without a concrete basis.",safe:"[the specific attribute]",chk:"Specific attribute evidence or ecolabel."},
+  {t:"clean",tier:"amber",cat:"Vague green",why:"Unregulated, undefined term implying environmental/health virtue.",safe:"[define it, or drop it]",chk:"Defined criteria + evidence (no legal definition of 'clean' exists)."},
+  {t:"conscious",tier:"amber",cat:"Vague green",why:"Vague virtue-signalling with no measurable meaning.",safe:"[the specific action behind it]",chk:"Evidence of the specific action."},
+  {t:"responsibly sourced",tier:"amber",cat:"Vague green",why:"Sounds specific but usually isn't evidenced; the ECGT expects proof.",safe:"FSC-certified [chain-of-custody no. ______]",chk:"Recognised sourcing scheme (FSC, PEFC, Fairtrade).",cert:{name:"FSC Chain of Custody",issuer:"Forest Stewardship Council"}},
+  {t:"ethically sourced",tier:"amber",cat:"Vague green",why:"Unproven sourcing claim without a recognised scheme behind it.",safe:"[named scheme, e.g. Fairtrade-certified]",chk:"Recognised scheme (Fairtrade, SA8000, audited supply chain)."},
+
+  // --- Packaging ---
+  {t:"home compostable",tier:"amber",cat:"Packaging",why:"Specific and good — IF certified. Unproven, it's misleading.",safe:"home compostable (certified TÜV “OK compost HOME” [no. ______])",chk:"Home-compost certification: TÜV “OK compost HOME” or NF T51-800.",cert:{name:"OK compost HOME",issuer:"TÜV Austria"}},
+  {t:"industrially compostable",tier:"amber",cat:"Packaging",why:"Only meaningful if industrial facilities exist and it's certified.",safe:"industrially compostable to EN 13432 (where facilities exist)",chk:"EN 13432 certification.",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
+  {t:"compostable",tier:"amber",cat:"Packaging",why:"Must specify home vs industrial and be certified; 'compostable' alone misleads if it only composts industrially.",safe:"industrially compostable, certified EN 13432 [no. ______]",chk:"EN 13432 (industrial) or “OK compost HOME” (home) — name which.",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
+  {t:"biodegradable",tier:"red",cat:"Packaging",why:"Often restricted: without a timeframe and conditions it's misleading (almost everything biodegrades eventually).",safe:"[remove — rely on certified compostability instead]",chk:"Replace with certified compostability (EN 13432)."},
+  {t:"degradable",tier:"red",cat:"Packaging",why:"Vague and frequently misleading — implies a benefit without conditions.",safe:"[remove, or state exactly what happens, where, how fast]",chk:"Defined test data + conditions (usually not substantiable)."},
+  {t:"recyclable",tier:"amber",cat:"Packaging",why:"Only defensible if actually collected and recycled where the customer lives.",safe:"recyclable where local facilities accept lined paper cups",chk:"PPWR design-for-recycling criteria + real local collection."},
+  {t:"plastic-free",tier:"amber",cat:"Packaging",why:"A 'free-from' absolute — risky for cups, which are often PLA-lined. Must be literally true.",safe:"[state the actual lining — check before claiming this]",chk:"Full material disclosure proving no plastic (incl. lining)."},
+  {t:"plant-based",tier:"amber",cat:"Packaging",why:"Specific-sounding but needs a basis (which part, what %).",safe:"plant-based PLA lining [__% bio-based]",chk:"Material composition + % bio-based content."},
+  {t:"made from renewable materials",tier:"amber",cat:"Packaging",why:"Needs specifics and proof — which materials, what share.",safe:"made from [__% renewable] [material]",chk:"Material spec + verified % renewable content."},
+
+  // --- Absolutes ---
+  {t:"100% recyclable",tier:"red",cat:"Absolute",why:"Absolute + recyclability claim — very hard to substantiate for lined cups.",safe:"recyclable where facilities accept lined cups",chk:"Proof the entire item (incl. lining) is recycled in practice, per PPWR."},
+  {t:"100% compostable",tier:"red",cat:"Absolute",why:"Absolute compostability claim — misleading unless fully certified and true in real user conditions.",safe:"industrially compostable to EN 13432 (cup body)",chk:"EN 13432 certification covering ALL components (body, lid, lining).",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
+  {t:"100% natural",tier:"red",cat:"Absolute",why:"Absolute + vague — almost never literally true or provable.",safe:"[list the actual composition]",chk:"Full composition evidence (ISO 16128 for cosmetics)."},
+  {t:"zero waste",tier:"red",cat:"Absolute",why:"Strong absolute environmental claim; needs robust lifecycle proof.",safe:"[the specific waste you avoid, e.g. “we reuse all offcuts”]",chk:"Lifecycle evidence of waste avoided."},
+  {t:"no waste",tier:"amber",cat:"Absolute",why:"Absolute claim; defensible only if you can show it.",safe:"[the specific waste-avoidance practice]",chk:"Evidence of the specific practice."},
+  {t:"plastic free",tier:"amber",cat:"Absolute",why:"'Free-from' absolute — must be literally and fully true.",safe:"[verify it's 100% true, or state the actual materials]",chk:"Full material disclosure."},
+  {t:"chemical-free",tier:"red",cat:"Absolute",why:"Scientifically impossible (everything is chemicals) — a flagged misleading claim.",safe:"free from [named substances, e.g. added BPA & PFAS]",chk:"Specific excluded substances + data."},
+  {t:"toxic-free",tier:"red",cat:"Absolute",why:"Implies competitors are toxic; treated as misleading.",safe:"free from [named substance, e.g. added BPA]",chk:"Specific substances excluded + safety data."},
+  {t:"non-toxic",tier:"amber",cat:"Absolute",why:"Vague safety/environmental absolute; needs a defined basis.",safe:"[standard met, or substances excluded]",chk:"Defined standard met / substances excluded + data."},
+  {t:"carbon neutral",tier:"red",cat:"Absolute",why:"Offset-based 'carbon/climate neutral' product claims are specifically restricted under the ECGT.",safe:"[report measured reductions, not neutrality]",chk:"GHG Protocol / ISO 14064 / SBTi (offsets won't substantiate a product claim)."},
+  {t:"climate neutral",tier:"red",cat:"Absolute",why:"Offset-based neutrality claims on products are banned under the ECGT.",safe:"[measured emission reductions you've actually made]",chk:"GHG Protocol / ISO 14064 measured reductions."},
+  {t:"co2 neutral",tier:"red",cat:"Absolute",why:"Offset-based neutrality claim — restricted under the ECGT.",safe:"[concrete, evidenced reductions]",chk:"GHG Protocol / ISO 14064 measured reductions."},
+  {t:"net zero",tier:"red",cat:"Absolute",why:"A future/absolute climate claim requiring a detailed, verified plan; risky as a product label.",safe:"[only with a real, time-bound, verified plan — otherwise remove]",chk:"SBTi-validated, time-bound transition plan."},
+
+  // --- Superlatives ---
+  {t:"most sustainable",tier:"red",cat:"Superlative",why:"Comparative superlative — needs robust comparative evidence to be lawful.",safe:"[drop the superlative, or cite the specific comparison + source]",chk:"Comparative LCA vs named competitors/products."},
+  {t:"greenest",tier:"red",cat:"Superlative",why:"Unprovable comparative environmental claim.",safe:"[remove, or substantiate with a named comparison]",chk:"Comparative evidence vs the market."},
+  {t:"most eco-friendly",tier:"red",cat:"Superlative",why:"Superlative + vague green — doubly risky.",safe:"[a specific, verifiable attribute instead]",chk:"Comparative evidence + specific attribute."},
+  {t:"best",tier:"amber",cat:"Superlative",why:"Unqualified superlative; needs evidence (e.g. an independent rating).",safe:"[back it with proof, or rephrase factually]",chk:"Independent rating, award, or comparative data."},
+  {t:"purest",tier:"amber",cat:"Superlative",why:"Comparative claim implying superiority without proof.",safe:"[the specific quality instead]",chk:"Defined measure + comparative data."},
+  {t:"cleanest",tier:"amber",cat:"Superlative",why:"Superlative form of an already-vague term.",safe:"[a specific, provable point]",chk:"Defined measure + comparative data."},
+
+  // --- Future / aspirational ---
+  {t:"committed to sustainability",tier:"amber",cat:"Future/vague",why:"Aspirational claim with no measurable content.",safe:"[a specific target, action & date]",chk:"Documented target + timeframe + resourced plan."},
+  {t:"committed to",tier:"amber",cat:"Future/vague",why:"Forward-looking claims need a concrete, verifiable plan under the ECGT.",safe:"[a measurable target + date + how]",chk:"Measurable target + date + implementation plan."},
+  {t:"regenerative",tier:"amber",cat:"Future/vague",why:"Trendy but undefined; needs a specific, evidenced practice.",safe:"[the concrete practice + measured effect]",chk:"Defined practice + measured outcomes."},
+  {t:"working towards",tier:"amber",cat:"Future/vague",why:"Vague forward promise; requires a real plan to be lawful.",safe:"[the target, milestones & date]",chk:"Target + milestones + date."},
+
+  // --- Food / health ---
+  {t:"healthy",tier:"amber",cat:"Food/health",why:"On food/drink, 'healthy' is a regulated health claim under EU food law — restricted.",safe:"[specific composition fact, e.g. “no added sugar”]",chk:"EU-authorised health claim / nutrition data."},
+  {t:"guilt-free",tier:"amber",cat:"Food/health",why:"Implied health claim; risky on food/drink.",safe:"[a factual nutritional statement]",chk:"Nutritional substantiation."}
+];
+
+/* ---------- helpers ---------- */
+function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+function escapeHtml(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+const sorted=[...TERMS].sort((a,b)=>b.t.length-a.t.length);
+const lookup={}; sorted.forEach(o=>{lookup[o.t.toLowerCase()]=o;});
+const RE=new RegExp("(?<![A-Za-z0-9])("+sorted.map(o=>esc(o.t)).join("|")+")(?![A-Za-z0-9])","gi");
+
+const SAMPLE=`Introducing the GreenLeaf Paper Cup — the eco-friendly choice for cafés that care.
+
+Our cups are 100% compostable and biodegradable, made from natural, responsibly sourced paper. Completely plastic-free and chemical-free, they're kind to the planet and carbon neutral across every cup.
+
+We believe we make the most sustainable cup on the market. Fully recyclable, plant-based, and committed to a zero waste future — because the planet deserves the best.`;
+
+const $=id=>document.getElementById(id);
+let lastFindings=[];
+
+/* ---------- PASS 1: scan ---------- */
+function scan(){
+  const text=$("input").value;
+  if(!text.trim()){$("summary").style.display="none";$("pass2").style.display="none";return;}
+
+  let html="",last=0,m;const counts={};let redN=0,amberN=0;
+  RE.lastIndex=0;
+  while((m=RE.exec(text))!==null){
+    const raw=m[0],data=lookup[raw.toLowerCase()];
+    html+=escapeHtml(text.slice(last,m.index));
+    if(data){
+      html+=`<mark class="${data.tier}" title="${data.tier==='red'?'High risk':'Needs proof'}: ${escapeHtml(data.why)}">${escapeHtml(raw)}</mark>`;
+      const k=data.t.toLowerCase();
+      if(!counts[k]){counts[k]={data,n:0};if(data.tier==='red')redN++;else amberN++;}
+      counts[k].n++;
+    } else {html+=escapeHtml(raw);}
+    last=m.index+raw.length;
+    if(m.index===RE.lastIndex)RE.lastIndex++;
+  }
+  html+=escapeHtml(text.slice(last));
+  $("preview").innerHTML=html;
+
+  const total=redN+amberN;
+  $("meter").innerHTML=
+    `<div class="pill red"><span class="n">${redN}</span> high-risk</div>`+
+    `<div class="pill amber"><span class="n">${amberN}</span> needs proof</div>`+
+    `<div class="pill ok"><span class="n">${total===0?'✓':''}</span> ${total===0?'no flags found':'flagged: '+total}</div>`;
+  const verdict=$("verdict");
+  if(total===0) verdict.textContent="No common risk phrases detected. Still worth a human check — wording and context matter.";
+  else if(redN>0) verdict.textContent=`Found ${redN} high-risk and ${amberN} “needs-proof” phrase${total>1?'s':''}. Several could be a problem from 27 Sept 2026.`;
+  else verdict.textContent=`No high-risk phrases, but ${amberN} claim${amberN>1?'s need':' needs'} specifics or proof.`;
+
+  const order={red:0,amber:1};
+  const items=Object.values(counts).sort((a,b)=>order[a.data.tier]-order[b.data.tier]);
+  lastFindings=items.map(i=>i.data);
+  const f=$("findings");
+  if(items.length===0){f.innerHTML=`<p class="empty">Nothing flagged. This only catches common patterns — a real audit reads for context too.</p>`;}
+  else{
+    f.innerHTML=items.map(({data,n})=>`
+      <div class="finding ${data.tier}">
+        <div class="head">
+          <span class="term">${escapeHtml(data.t)}</span>
+          <span class="tag ${data.tier}">${data.tier==='red'?'High risk':'Needs proof'}</span>
+          <span class="tag cat">${escapeHtml(data.cat)}</span>
+          ${n>1?`<span class="tag count">×${n}</span>`:''}
+        </div>
+        <div class="why"><b>Why it's risky:</b> ${escapeHtml(data.why)}</div>
+      </div>`).join("");
+  }
+  $("summary").style.display="block";
+  $("pass2").style.display="none";$("pass3").style.display="none";
+  $("stp1").classList.add("on");$("stp2").classList.remove("on");$("stp3").classList.remove("on");
+  $("checkPageBtn").style.display="inline-block";
+  $("summary").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ---------- PASS 2: rewrite + schema + needs ---------- */
+function pass2(){
+  const text=$("input").value;
+
+  // A · corrected copy (inline replacement)
+  let html="",last=0,m;RE.lastIndex=0;
+  const certMap=new Map();const needMap={};
+  while((m=RE.exec(text))!==null){
+    const raw=m[0],data=lookup[raw.toLowerCase()];
+    html+=escapeHtml(text.slice(last,m.index));
+    if(data){
+      html+=`<span class="rep" title="was: ${escapeHtml(raw)}">${escapeHtml(data.safe||'[make specific]')}</span>`;
+      if(data.cert)certMap.set(data.cert.name,data.cert);
+      needMap[data.t.toLowerCase()]=data;
+    } else {html+=escapeHtml(raw);}
+    last=m.index+raw.length;
+    if(m.index===RE.lastIndex)RE.lastIndex++;
+  }
+  html+=escapeHtml(text.slice(last));
+  $("corrected").innerHTML=html;
+
+  // B · JSON-LD
+  const certs=[...certMap.values()];
+  const certLines=certs.map(c=>
+`    {
+      "@type":"Certification",
+      "name":"${c.name}",
+      "issuedBy":{"@type":"Organization","name":"${c.issuer}"},
+      "certificationIdentification":"[your certificate number]",
+      "expires":"[YYYY-MM-DD]"
+    }`).join(",\n");
+  const schema=
+`{
+  "@context":"https://schema.org",
+  "@type":"Product",
+  "name":"[Your product name]",
+  "brand":{"@type":"Brand","name":"${BRAND}"},
+  "material":"[e.g. FSC-certified paper, plant-based PLA lining]",
+  "hasCertification":[
+${certLines || '    /* No certifiable claim detected — add one specific, certified credential to become findable */'}
+  ]
+}`;
+  $("schema").textContent=schema;
+
+  // C · needs checklist
+  const needs=Object.values(needMap);
+  $("needs").innerHTML=needs.length
+    ? needs.map(d=>`<li><b>${escapeHtml(d.t)}</b> — <span class="chk">${escapeHtml(d.chk)}</span></li>`).join("")
+    : `<li style="border:0">Nothing to substantiate.</li>`;
+
+  $("pass2").style.display="block";
+  $("stp3").classList.add("on");
+}
+
+/* ---------- PASS 3: page findability ---------- */
+const SAMPLE_PAGE=`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>GreenLeaf Paper Cup — eco-friendly cups for cafés</title>
+</head>
+<body>
+  <img src="cup-hero.jpg" alt="The eco-friendly 100% compostable paper cup">
+  <h1>Our cups</h1>
+  <p>Loved by cafés all over the country. Order yours today.</p>
+</body>
+</html>`;
+
+function mk(state,label,det,fix){return{state,label,det,fix};}
+
+function scanPage(){
+  const raw=$("pageHtml").value.trim();
+  if(!raw){return;}
+  // Guard: a pasted URL or plain text isn't HTML — this tool can't fetch a live site (CORS).
+  if(/^https?:\/\/\S+\s*$/i.test(raw) || !/</.test(raw)){
+    $("scoreN").textContent="—";
+    $("scoreLbl").textContent="";
+    $("scanList").innerHTML=`<li class="need" style="border:0"><span class="lbl">That looks like a web address, not HTML.</span><span class="fix" style="color:var(--ink-soft)">This tool can’t open a live URL — a static page is blocked from fetching other sites (CORS). To check a real page: open it → right-click → <b>View Page Source</b> → select all → copy → paste the whole thing here.</span></li>`;
+    $("scanResult").style.display="block";
+    $("stp2").classList.add("on");
+    return;
+  }
+  const doc=new DOMParser().parseFromString(raw,"text/html");
+  const ld=[...doc.querySelectorAll('script[type="application/ld+json"]')];
+  let ldParsed=0,ldText="";
+  ld.forEach(s=>{ldText+=s.textContent;try{JSON.parse(s.textContent);ldParsed++;}catch(e){}});
+  const checks=[];
+
+  checks.push(mk(
+    ld.length? (ldParsed?'have':'part'):'need',
+    'Structured data (JSON-LD)',
+    ld.length? (ldParsed?'Found and valid.':'A JSON-LD block exists but does not parse — fix the syntax.'):'None found — AI/Google have no structured facts to extract.',
+    'Add a <script type="application/ld+json"> block (Step 3 builds you a starter).'));
+
+  const hasEntity=/"@type"\s*:\s*"(Product|Organization|LocalBusiness|Service|Brand)"/i.test(ldText);
+  checks.push(mk(hasEntity?'have':'need','Product / Organization entity',
+    hasEntity?'A core entity type is declared.':'No Product/Organization type — the claim isn’t anchored to a thing.',
+    'Set "@type":"Product" (or Organization) in your JSON-LD.'));
+
+  const hasCert=/hasCertification|"Certification"/i.test(ldText);
+  checks.push(mk(hasCert?'have':'need','Certifications marked up (hasCertification)',
+    hasCert?'Certification markup present — the rare, high-trust signal.':'No certification markup — your real credentials are invisible to machines.',
+    'Add hasCertification with the certifier name + certificate ID.'));
+
+  const robots=doc.querySelector('meta[name="robots"]');
+  const noindex=robots&&/noindex/i.test(robots.getAttribute('content')||'');
+  checks.push(mk(noindex?'need':'have','Crawlable / indexable',
+    noindex?'Page is set to NOINDEX — engines are told to skip it.':'No noindex block found.',
+    'Remove noindex and make sure the page is in your sitemap.'));
+
+  const title=doc.querySelector('title'),desc=doc.querySelector('meta[name="description"]');
+  checks.push(mk((title&&desc)?'have':(title||desc)?'part':'need','Title &amp; meta description',
+    (title?'Title ✓ ':'Title ✗ ')+(desc?'Description ✓':'Description ✗'),
+    'Give the page a descriptive <title> and a meta description.'));
+
+  const bodyText=(doc.body?doc.body.textContent:'').toLowerCase();
+  const imgAlt=[...doc.querySelectorAll('img')].map(i=>i.getAttribute('alt')||'').join(' ').toLowerCase();
+  RE.lastIndex=0;const inText=RE.test(bodyText);RE.lastIndex=0;const inImg=RE.test(imgAlt);
+  checks.push(mk(inText?'have':(inImg?'part':'need'),'Green claims in readable text',
+    inText?'Claims appear in real page text — crawlable.':inImg?'Claims found only in image alt text — weak; move them into the copy.':'No green claims detected in the page text.',
+    'Write claims as HTML text, not baked into product images.'));
+
+  const hasSameAs=/sameAs/i.test(ldText);
+  const certLinks=[...doc.querySelectorAll('a')].some(a=>/(fsc\.org|tuv|ecolabel|vakinn|blueflag|green-key|msc\.org|fairtrade)/i.test(a.getAttribute('href')||''));
+  checks.push(mk((hasSameAs||certLinks)?'have':'part','Trust links to the certifier',
+    (certLinks?'Links to a certifier/registry found. ':'')+(hasSameAs?'sameAs present.':(certLinks?'':'No links to a certifier or official registry.')),
+    'Link to your certificate on the issuer/registry site, and add sameAs.'));
+
+  const have=checks.filter(c=>c.state==='have').length;
+  $("scoreN").textContent=have+"/"+checks.length;
+  $("scoreLbl").textContent=have>=6?'Strong — very findable.':have>=4?'Partly findable — a few quick wins.':'Weak — your real credentials are hard to find.';
+  $("scanList").innerHTML=checks.map(c=>
+    `<li class="${c.state}"><span class="lbl">${c.label}</span> — <span class="det">${c.det}</span><span class="fix">Fix: ${c.fix}</span></li>`).join("");
+  $("scanResult").style.display="block";
+  $("stp2").classList.add("on");
+  $("scanResult").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+/* ---------- wiring ---------- */
+$("scanBtn").addEventListener("click",scan);
+$("checkPageBtn").addEventListener("click",()=>{$("pass3").style.display="block";$("stp2").classList.add("on");$("checkPageBtn").scrollIntoView({behavior:"smooth",block:"start"});});
+$("rewriteBtn").addEventListener("click",()=>{pass2();$("rewriteBtn").scrollIntoView({behavior:"smooth",block:"start"});});
+$("scanPageBtn").addEventListener("click",scanPage);
+$("clearPageBtn").addEventListener("click",()=>{$("pageHtml").value="";$("scanResult").style.display="none";$("pageHtml").focus();});
+$("samplePageBtn").addEventListener("click",()=>{$("pageHtml").value=SAMPLE_PAGE;scanPage();});
+
+// top step rail — click to jump straight to a step
+$("stp1").addEventListener("click",()=>{$("card1").scrollIntoView({behavior:"smooth",block:"start"});});
+$("stp2").addEventListener("click",()=>{if($("summary").style.display!=="block")scan();$("pass3").style.display="block";$("stp2").classList.add("on");$("checkPageBtn").scrollIntoView({behavior:"smooth",block:"start"});});
+$("stp3").addEventListener("click",()=>{if($("summary").style.display!=="block")scan();$("pass3").style.display="block";$("stp2").classList.add("on");pass2();$("rewriteBtn").scrollIntoView({behavior:"smooth",block:"start"});});
+$("sampleBtn").addEventListener("click",()=>{$("input").value=SAMPLE;scan();});
+$("clearBtn").addEventListener("click",()=>{$("input").value="";$("summary").style.display="none";$("pass2").style.display="none";$("input").focus();});
+$("copySchema").addEventListener("click",()=>{
+  navigator.clipboard&&navigator.clipboard.writeText($("schema").textContent);
+  const b=$("copySchema");b.textContent="Copied ✓";setTimeout(()=>b.textContent="Copy schema",1500);
+});
+
+// config injection
+$("dossierLink").setAttribute("href",DOSSIER_URL);
+$("contactLink").setAttribute("href",CONTACT_URL);
+$("brandFoot").textContent=BRAND;
+
+// preload sample
+$("input").value=SAMPLE;
+</script>
+</body>
+</html>
