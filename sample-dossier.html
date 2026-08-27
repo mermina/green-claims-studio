@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Green Claims Dossier — GreenLeaf Paper Cup Co. (sample)</title>
+<style>
+  :root{
+    --bg:#F5F7F2; --paper:#FFFFFF; --ink:#1F2A24; --ink-soft:#5B6A60;
+    --leaf:#3E7A52; --leaf-deep:#2C5C3C; --line:#E2E8DD;
+    --red:#C0413B; --red-bg:#FBE9E7; --amber:#B8791A; --amber-bg:#FBF1DD;
+    --ok:#2F7D4F; --ok-bg:#E7F2EA; --gold:#B8860B;
+    --serif:Georgia,"Times New Roman",serif; --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.6;padding:2rem 1rem 4rem}
+  .doc{max-width:880px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 10px 40px rgba(31,42,36,.10);overflow:hidden}
+  .pad{padding:2.2rem 2.4rem}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.2}
+  h2{font-size:1.4rem;color:var(--leaf-deep);margin:0 0 .8rem;padding-top:.2rem}
+  h3{font-size:1.05rem;margin:1.1rem 0 .4rem}
+  p{margin-bottom:.7rem}
+  .muted{color:var(--ink-soft)}
+  small{color:var(--ink-soft)}
+  section{border-top:1px solid var(--line)}
+  .num{color:var(--leaf);font-family:var(--serif);font-size:.95rem;font-weight:700;letter-spacing:.05em}
+
+  /* cover */
+  .cover{background:linear-gradient(135deg,var(--leaf-deep),var(--leaf));color:#fff;padding:2.6rem 2.4rem}
+  .cover .kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+  .cover h1{font-size:2.1rem;margin:.5rem 0 .3rem;color:#fff}
+  .cover .sub{font-size:1.05rem;opacity:.95;max-width:46ch}
+  .cover .facts{display:flex;flex-wrap:wrap;gap:1.4rem 2.4rem;margin-top:1.6rem;font-size:.9rem}
+  .cover .facts b{display:block;opacity:.8;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.15rem}
+
+  /* readiness meter */
+  .score{display:flex;gap:1rem;flex-wrap:wrap;margin:.4rem 0 .6rem}
+  .scorebox{flex:1;min-width:130px;border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem;text-align:center}
+  .scorebox .big{font-family:var(--serif);font-size:1.8rem;font-weight:700;line-height:1}
+  .scorebox .lbl{font-size:.78rem;color:var(--ink-soft);margin-top:.25rem}
+  .scorebox.red .big{color:var(--red)} .scorebox.amber .big{color:var(--amber)} .scorebox.ok .big{color:var(--ok)}
+
+  .bar{height:12px;border-radius:99px;background:var(--line);overflow:hidden;display:flex;margin:.6rem 0 .2rem}
+  .bar i{display:block;height:100%}
+  .bar .b-red{background:var(--red)} .bar .b-amber{background:var(--amber)} .bar .b-ok{background:var(--ok)}
+
+  table{width:100%;border-collapse:collapse;margin:.6rem 0 .4rem;font-size:.88rem}
+  th,td{text-align:left;vertical-align:top;padding:.55rem .6rem;border-bottom:1px solid var(--line)}
+  th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700}
+  td .claim{font-weight:600}
+  .tag{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:.16rem .45rem;border-radius:5px;white-space:nowrap}
+  .t-red{background:var(--red-bg);color:var(--red)} .t-amber{background:var(--amber-bg);color:var(--amber)} .t-ok{background:var(--ok-bg);color:var(--ok)}
+
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:.5rem 0 1rem}
+  .ba>div{padding:.9rem 1.1rem}
+  .ba .before{background:var(--red-bg)}
+  .ba .after{background:var(--ok-bg);border-left:1px solid var(--line)}
+  .ba h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
+  .ba .before h4{color:var(--red)} .ba .after h4{color:var(--ok)}
+  .ba p{font-size:.92rem;margin:0;font-style:italic}
+  @media(max-width:620px){.ba{grid-template-columns:1fr}.ba .after{border-left:0;border-top:1px solid var(--line)}}
+
+  ul.check{list-style:none;margin:.4rem 0}
+  ul.check li{padding:.4rem 0 .4rem 1.8rem;position:relative;border-bottom:1px solid var(--line);font-size:.92rem}
+  ul.check li:before{position:absolute;left:0;top:.4rem;font-weight:700}
+  li.have:before{content:"✓";color:var(--ok)}
+  li.part:before{content:"◑";color:var(--amber)}
+  li.need:before{content:"✗";color:var(--red)}
+  li .st{font-size:.7rem;font-weight:700;text-transform:uppercase;float:right;letter-spacing:.03em}
+  li.have .st{color:var(--ok)} li.part .st{color:var(--amber)} li.need .st{color:var(--red)}
+
+  .callout{background:#F0F5EF;border-left:4px solid var(--leaf);border-radius:8px;padding:.9rem 1.1rem;margin:.8rem 0;font-size:.92rem}
+  .action{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem 0;border-bottom:1px solid var(--line)}
+  .action .p{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--leaf);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.8rem}
+  .disc{font-size:.8rem;color:var(--ink-soft);background:#F0F3EE;border-radius:8px;padding:.9rem 1.1rem;margin-top:.5rem}
+  .foot{background:#1F2A24;color:#D9E2DA;padding:1.4rem 2.4rem;font-size:.82rem}
+  .foot a{color:#A9D3B6}
+  .brandmark{font-family:var(--serif);font-weight:700;color:#fff;font-size:1.05rem}
+
+  @media print{
+    body{background:#fff;padding:0}
+    .doc{box-shadow:none;border:0;border-radius:0;max-width:100%}
+    section{break-inside:avoid}
+    .ba,table,.callout{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="kicker">Green Claims Dossier · Prepared by [Your Brand]</div>
+    <h1>GreenLeaf Paper Cup Co.</h1>
+    <div class="sub">A review of your environmental claims, the proof behind them, and what to change before the EU rules apply.</div>
+    <div class="facts">
+      <div><b>Client</b>GreenLeaf Paper Cup Co. (sample)</div>
+      <div><b>Prepared for</b>Anna Jónsdóttir, Founder</div>
+      <div><b>Date</b>June 2026</div>
+      <div><b>Deadline in view</b>ECGT — 27 Sept 2026</div>
+      <div><b>Channels reviewed</b>Website · product label · Instagram</div>
+    </div>
+  </div>
+
+  <!-- 1 EXEC SUMMARY -->
+  <section class="pad">
+    <span class="num">01 — EXECUTIVE SUMMARY</span>
+    <h2>Where you stand</h2>
+    <p>We reviewed the environmental wording GreenLeaf uses across its website, cup labels and social media. Your story is genuinely good — paper cups, FSC-certified board, a real industrial-compost option — but the <b>wording overstates it in ways that become a liability under the EU’s ECGT Directive from 27 September 2026</b>, and one claim (“plastic-free”) appears to be factually incorrect given the PLA lining.</p>
+    <div class="score">
+      <div class="scorebox red"><div class="big">5</div><div class="lbl">High-risk claims (fix)</div></div>
+      <div class="scorebox amber"><div class="big">5</div><div class="lbl">Need proof / wording</div></div>
+      <div class="scorebox ok"><div class="big">2</div><div class="lbl">Already defensible</div></div>
+    </div>
+    <div class="bar"><i class="b-red" style="width:42%"></i><i class="b-amber" style="width:42%"></i><i class="b-ok" style="width:16%"></i></div>
+    <small>Readiness: <b>Needs work.</b> The good news — most fixes are wording, and you already hold much of the proof.</small>
+    <div class="callout"><b>Why this matters commercially (not just legally):</b> the cafés, chains and distributors you sell to will increasingly require clean, provable claims from suppliers. Tightening these protects your contracts and lets your <i>real</i> credentials (FSC board, EN 13432 cups) actually win business — instead of vague words a buyer now distrusts.</div>
+  </section>
+
+  <!-- 2 SCOPE -->
+  <section class="pad">
+    <span class="num">02 — SCOPE &amp; METHOD</span>
+    <h2>What we checked</h2>
+    <p>Every environmental or “green” claim on your public channels was identified, rated against the ECGT and related packaging rules (PPWR), and matched to the evidence that would substantiate it. For each, we give a compliant rewrite and the specific proof to hold on file.</p>
+    <p class="muted"><b>This review covers:</b> claims wording and the evidence path. <b>It does not provide:</b> legal sign-off, certification, or a life-cycle assessment. Where a claim is high-stakes, we flag it for a lawyer or accredited body — see §6.</p>
+  </section>
+
+  <!-- 3 CLAIMS REGISTER -->
+  <section class="pad">
+    <span class="num">03 — CLAIMS REGISTER</span>
+    <h2>Every claim, rated</h2>
+    <table>
+      <thead><tr><th>Your claim</th><th>Rating</th><th>The issue</th><th>Check against</th></tr></thead>
+      <tbody>
+        <tr><td class="claim">“eco-friendly”</td><td><span class="tag t-red">High risk</span></td><td>Generic green term — banned unless specific &amp; proven.</td><td>Recognised ecolabel or specific attribute evidence.</td></tr>
+        <tr><td class="claim">“100% compostable”</td><td><span class="tag t-red">High risk</span></td><td>Absolute; misleading — only the cup body composts industrially, and only via EN 13432 facilities.</td><td>EN 13432 cert covering <i>all</i> components (body, lid, lining).</td></tr>
+        <tr><td class="claim">“biodegradable”</td><td><span class="tag t-red">High risk</span></td><td>Vague — no timeframe/conditions; often restricted.</td><td>Remove; rely on certified compostability instead.</td></tr>
+        <tr><td class="claim">“plastic-free”</td><td><span class="tag t-red">High risk</span></td><td><b>Appears untrue</b> — the cup has a PLA lining (a bioplastic).</td><td>Full material disclosure; correct the claim.</td></tr>
+        <tr><td class="claim">“chemical-free”</td><td><span class="tag t-red">High risk</span></td><td>Scientifically impossible; treated as misleading.</td><td>List specific excluded substances instead.</td></tr>
+        <tr><td class="claim">“carbon neutral”</td><td><span class="tag t-red">High risk</span></td><td>Offset-based product neutrality claims are banned by the ECGT.</td><td>GHG Protocol / ISO 14064 <i>reductions</i>, not offsets.</td></tr>
+        <tr><td class="claim">“most sustainable cup”</td><td><span class="tag t-red">High risk</span></td><td>Comparative superlative without comparative proof.</td><td>Comparative LCA vs named alternatives — or drop.</td></tr>
+        <tr><td class="claim">“recyclable / fully recyclable”</td><td><span class="tag t-amber">Needs proof</span></td><td>Only true where lined cups are actually collected &amp; recycled.</td><td>PPWR design-for-recycling + local collection reality.</td></tr>
+        <tr><td class="claim">“natural”</td><td><span class="tag t-amber">Needs proof</span></td><td>Undefined benefit claim.</td><td>State material facts (FSC board, fibre source).</td></tr>
+        <tr><td class="claim">“responsibly sourced”</td><td><span class="tag t-amber">Needs proof</span></td><td>Needs a recognised scheme behind it.</td><td>FSC / PEFC chain-of-custody certificate.</td></tr>
+        <tr><td class="claim">“committed to a zero-waste future”</td><td><span class="tag t-amber">Needs proof</span></td><td>Forward claim needs a real, measurable plan.</td><td>Documented target + date + actions.</td></tr>
+        <tr><td class="claim">FSC-certified board</td><td><span class="tag t-ok">Defensible</span></td><td>Specific, verifiable — good.</td><td>Keep FSC certificate current &amp; visible.</td></tr>
+        <tr><td class="claim">EN 13432 industrial compostability (body)</td><td><span class="tag t-ok">Defensible</span></td><td>Real certification — use it precisely.</td><td>Cite cert number &amp; scope.</td></tr>
+      </tbody>
+    </table>
+    <small class="muted">Ratings: <span class="tag t-red">High risk</span> fix before Sept 2026 · <span class="tag t-amber">Needs proof</span> make specific/substantiate · <span class="tag t-ok">Defensible</span> keep &amp; amplify.</small>
+  </section>
+
+  <!-- 4 BEFORE / AFTER -->
+  <section class="pad">
+    <span class="num">04 — REWRITES (BEFORE → AFTER)</span>
+    <h2>Your copy, made compliant</h2>
+    <p class="muted">Same warmth, but specific and provable. Drop-in replacements for your product page and label.</p>
+
+    <div class="ba">
+      <div class="before"><h4>Before</h4><p>“The eco-friendly choice — 100% compostable and biodegradable, completely plastic-free and chemical-free, kind to the planet and carbon neutral.”</p></div>
+      <div class="after"><h4>After</h4><p>“Made with FSC-certified paper and a plant-based PLA lining. The cup body is certified industrially compostable to EN 13432 (where industrial composting is available). Free from added BPA and PFAS.”</p></div>
+    </div>
+
+    <div class="ba">
+      <div class="before"><h4>Before</h4><p>“We make the most sustainable cup on the market — fully recyclable, plant-based, committed to a zero-waste future.”</p></div>
+      <div class="after"><h4>After</h4><p>“A lower-impact cup: renewable paper board and a plant-based lining. Recyclable where local facilities accept lined paper cups. Our goal: 30% less material per cup by 2027 (progress reported yearly).”</p></div>
+    </div>
+
+    <div class="callout"><b>Note:</b> the “after” wording assumes the evidence in §5 is confirmed. Anything not yet evidenced is written conservatively or held back until proof is in hand.</div>
+  </section>
+
+  <!-- 5 EVIDENCE CHECKLIST -->
+  <section class="pad">
+    <span class="num">05 — EVIDENCE CHECKLIST</span>
+    <h2>The proof to hold on file</h2>
+    <p class="muted">What substantiates each kept claim — and what’s still missing. Status reflects what you’ve shared so far.</p>
+    <ul class="check">
+      <li class="have">FSC chain-of-custody certificate for the paper board <span class="st">On file</span></li>
+      <li class="have">EN 13432 certificate — cup body (industrial compost) <span class="st">On file</span></li>
+      <li class="part">EN 13432 / “OK compost” for the lid &amp; full cup <span class="st">Partial — body only</span></li>
+      <li class="need">Material spec sheet confirming PLA lining (to correct “plastic-free”) <span class="st">Needed</span></li>
+      <li class="need">Local recycling acceptance evidence for lined cups <span class="st">Needed</span></li>
+      <li class="need">Substance data sheet (to replace “chemical-free” with specifics) <span class="st">Needed</span></li>
+      <li class="need">Emissions data (GHG Protocol) if any climate claim is kept <span class="st">Needed</span></li>
+      <li class="part">Written “zero-waste” target with date &amp; actions <span class="st">Draft needed</span></li>
+    </ul>
+  </section>
+
+  <!-- 6 PROOF PAGE -->
+  <section class="pad">
+    <span class="num">06 — RECOMMENDED “PROOF” PAGE</span>
+    <h2>Turn compliance into a selling point</h2>
+    <p>Add one page — <i>“Our materials &amp; claims”</i> — that lists each claim beside its evidence (FSC number, EN 13432 scope, lining spec). It does three things: satisfies the new rules, reassures the cafés and distributors who now ask, and — written for Google &amp; AI search — helps the right buyers find you. We provide the page copy and the search-optimisation (AEO) as part of delivery.</p>
+    <div class="disc">⚠️ <b>Scope &amp; limitations.</b> This dossier is claims-hygiene and evidence guidance, not legal advice or certification. It flags risk patterns under Directive (EU) 2024/825 (ECGT), the PPWR (EU) 2025/40 and related rules, and identifies the standards typically used to substantiate claims. For high-stakes or contested claims, confirm with a qualified lawyer or accredited certification body before publishing.</div>
+  </section>
+
+  <!-- 7 ACTION PLAN -->
+  <section class="pad">
+    <span class="num">07 — PRIORITY ACTION PLAN</span>
+    <h2>What to do, in order</h2>
+    <div class="action"><div class="p">1</div><div><b>Correct “plastic-free” immediately.</b> It appears factually wrong (PLA lining) — the highest-risk item. Swap to the §4 wording now.</div></div>
+    <div class="action"><div class="p">2</div><div><b>Remove the banned absolutes</b> — “carbon neutral”, “chemical-free”, “biodegradable”, “100%”, “most sustainable”. Replace with the §4 rewrites.</div></div>
+    <div class="action"><div class="p">3</div><div><b>Gather the four missing proofs</b> (§5) — lining spec, recycling evidence, substance sheet, written target.</div></div>
+    <div class="action"><div class="p">4</div><div><b>Publish the rewritten copy + the proof page</b> across website, label and Instagram (which currently repeats the same claims).</div></div>
+    <div class="action"><div class="p">5</div><div><b>Re-check before 27 Sept 2026</b>, and at each new product launch. (Offered as an annual re-check.)</div></div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <div class="brandmark">[Your Brand]</div>
+    <p style="margin:.4rem 0 0">Green-claims &amp; findability for sustainable brands · prepared for GreenLeaf Paper Cup Co. (sample) · June 2026</p>
+    <p style="margin:.2rem 0 0"><a href="#">hello@[yourbrand].is</a> · Reviewed with input from an environmental specialist · Claims-hygiene support, not legal advice.</p>
+  </div>
+
+</div>
+</body>
+</html>

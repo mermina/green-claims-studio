@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Green Claims → Findability Studio — compliant AND findable, in one pass</title>
+<title>Green Claims → Findability Studio — multi-framework claims + findability check</title>
 <meta name="description" content="Paste your green marketing copy. Pass 1 flags what's risky under the EU ECGT rule. Pass 2 turns the real claims into compliant, machine-readable credentials that Google and AI search can cite." />
 <style>
   :root{
@@ -15,7 +15,7 @@
     --serif:Georgia,"Times New Roman",serif; --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.55;padding:0 0 4rem}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.55;padding:0 0 4rem;overflow-anchor:none}
   .wrap{max-width:980px;margin:0 auto;padding:0 1.2rem}
   header.top{background:linear-gradient(135deg,var(--leaf-deep),var(--leaf));color:#fff;padding:2.4rem 0 2.6rem}
   .badge{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
@@ -23,6 +23,9 @@
   header.top h1{font-family:var(--serif);font-size:clamp(1.7rem,4vw,2.5rem);font-weight:600;line-height:1.15;max-width:22ch}
   header.top p{margin-top:.7rem;max-width:64ch;color:rgba(255,255,255,.92);font-size:1.02rem}
   header.top .meta{margin-top:1rem;font-size:.85rem;color:rgba(255,255,255,.8)}
+  .frameworks{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin-top:1rem}
+  .frameworks .fwk-lbl{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.85);margin-right:.15rem}
+  .frameworks .fwk{font-size:.72rem;font-weight:600;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:.22rem .6rem}
 
   /* step rail */
   .steps{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.3rem}
@@ -78,6 +81,7 @@
   .tag.amber{background:var(--amber-bg);color:var(--amber)}
   .tag.cat{background:#EEF2EC;color:var(--ink-soft)}
   .tag.count{background:#EEF2EC;color:var(--ink-soft)}
+  .tag.law{background:#EEF1F8;color:#3A5488}
   .finding .why{font-size:.92rem;color:var(--ink-soft)}
   .finding .fixline{font-size:.9rem;margin-top:.35rem}
   .finding .fixline b{color:var(--leaf-deep)}
@@ -110,6 +114,8 @@
   ul.scan li.have:before{content:"✓";color:var(--ok)}
   ul.scan li.part:before{content:"◑";color:var(--amber)}
   ul.scan li.need:before{content:"✗";color:var(--red)}
+  ul.scan li.na:before{content:"–";color:var(--ink-soft)}
+  ul.scan li.na{opacity:.6}
   ul.scan .lbl{font-weight:700}
   ul.scan .det{color:var(--ink-soft)}
   ul.scan .fix{color:var(--leaf-deep);font-size:.85rem;display:block;margin-top:.15rem}
@@ -123,16 +129,62 @@
   .legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.82rem;color:var(--ink-soft);margin-top:.6rem}
   .legend span{display:inline-flex;align-items:center;gap:.35rem}
   .swatch{width:14px;height:14px;border-radius:4px;display:inline-block}
+  mark.ok{background:var(--green-bg);color:var(--ok);border-bottom:2px solid var(--ok)}
+  .finding.ok{border-left-color:var(--ok)}
+  .tag.ok{background:var(--green-bg);color:var(--ok)}
+  .creds{margin-top:1rem;border:1px solid var(--line);border-radius:12px;background:#FBFDFB;padding:.9rem 1.1rem}
+  .creds-h{font-size:.9rem;font-weight:600;margin-bottom:.6rem}
+  .creds-grid{display:flex;flex-direction:column;gap:.45rem}
+  .cred{display:flex;align-items:flex-start;gap:.55rem;font-size:.9rem;color:var(--ink);border:1px solid var(--line);border-radius:10px;background:#fff;padding:.55rem .75rem;cursor:pointer}
+  .cred input{width:16px;height:16px;accent-color:var(--leaf);flex:0 0 auto;margin-top:.15rem}
+  .cred .lbl{font-weight:600}
+  .cred-note{color:var(--ink-soft);font-size:.82rem}
+  .cred a{margin-left:auto;font-size:.8rem;color:var(--leaf);text-decoration:none;white-space:nowrap;padding-left:.5rem}
+  .cred a:hover{text-decoration:underline}
+
+  /* industry picker */
+  .indrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin:.2rem 0 .2rem}
+  .indbtn{border:1.5px solid var(--line);border-radius:12px;background:#FCFDFB;padding:.8rem 1rem;cursor:pointer;
+    transition:.15s;text-align:left;font:inherit;color:var(--ink);display:flex;align-items:center;gap:.6rem}
+  .indbtn:hover{border-color:var(--leaf);background:#F4F9F4}
+  .indbtn.sel{border-color:var(--leaf);background:var(--green-bg);box-shadow:0 0 0 3px rgba(62,122,82,.12)}
+  .indbtn .ico{font-size:1.35rem;line-height:1}
+  .indbtn .t{font-weight:700;font-size:.98rem;display:block}
+  .indbtn .n{font-size:.76rem;color:var(--ink-soft);display:block}
+  .indbtn .chev{margin-left:auto;color:var(--ink-soft);transition:.2s;font-weight:700}
+  .indbtn.sel .chev{transform:rotate(90deg);color:var(--leaf)}
+  .cred .warn{display:block;color:var(--amber);font-size:.8rem;font-weight:600;margin-top:.15rem}
+  .tierA{font-size:.66rem;font-weight:700;text-transform:uppercase;background:var(--green-bg);color:var(--ok);padding:.1rem .38rem;border-radius:5px;margin-left:.35rem}
+  .tierC{font-size:.66rem;font-weight:700;text-transform:uppercase;background:var(--amber-bg);color:var(--amber);padding:.1rem .38rem;border-radius:5px;margin-left:.35rem}
+  .tierIS{font-size:.66rem;font-weight:700;background:#EAF1FB;color:#2B5C9B;padding:.1rem .38rem;border-radius:5px;margin-left:.35rem;white-space:nowrap}
+  .certtype{font-size:.62rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;background:#EDF1EA;color:var(--ink-soft);padding:.08rem .4rem;border-radius:5px;margin-left:.4rem;white-space:nowrap}
+  .showmore{display:inline-block}
+  .certgrouphdr{font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--leaf-deep);margin:.9rem 0 .45rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+  .certgrouphdr.first{margin-top:.15rem}
+  .trapnote{background:#F0F5EF;border-left:4px solid var(--leaf);border-radius:8px;padding:.8rem 1rem;margin-top:.8rem;font-size:.85rem;color:var(--ink)}
+  .certmini{display:flex;align-items:center;gap:.55rem;margin:.2rem 0 .7rem;flex-wrap:wrap}
+  .certmini .q{font-weight:700;font-size:.9rem}
+  .btn-mini{font:inherit;font-weight:600;font-size:.8rem;border:1.5px solid var(--line);border-radius:999px;background:#fff;color:var(--ink-soft);padding:.3rem .8rem;cursor:pointer}
+  .btn-mini:hover{border-color:var(--leaf);color:var(--leaf)}
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="wrap">
-    <span class="badge">EU ECGT Directive · in force 27 Sept 2026</span>
+    <span class="badge">🇮🇸 Misleading green claims are already illegal in Iceland today · EU ECGT from 27 Sept 2026</span>
     <h1>Green Claims → Findability Studio</h1>
-    <p>For businesses whose “green” is the real thing. From 2026, the EU’s Green Claims rules — the <b>ECGT Directive</b> — turn vague eco-wording into a <b>legal risk</b>, even when your product truly is sustainable. This tool finds the risky words, <b>rewrites them to be true and provable</b>, and turns your real certificates into data that <b>Google and AI search can find and cite</b>. So your good work <b>protects you, instead of getting you into trouble</b>.</p>
+    <p>For businesses whose “green” is the real thing. Vague eco-wording is a <b>legal risk</b> — not only under the EU’s incoming <b>ECGT rules</b>, but already today under <b>Icelandic consumer law</b>. This tool checks your wording against <b>the rules that actually apply to you</b>, <b>rewrites the risky words to be true and provable</b>, and turns your real certificates into data <b>Google and AI search can cite</b>. So your good work <b>protects you, instead of getting you into trouble</b>.</p>
     <p class="meta">🔒 100% private — your text never leaves your browser. Nothing is uploaded or stored.</p>
+    <div class="frameworks" title="Your wording is checked against all of these, not just one rule">
+      <span class="fwk-lbl">Checked against:</span>
+      <span class="fwk">🇮🇸 Act 57/2005 · Neytendastofa</span>
+      <span class="fwk">EU ECGT 2024/825</span>
+      <span class="fwk">ISO 14021</span>
+      <span class="fwk">PPWR 2025/40</span>
+      <span class="fwk">Nutrition Claims 1924/2006</span>
+      <span class="fwk">Cosmetics 655/2013</span>
+    </div>
     <div class="steps">
       <div class="step on" id="stp1"><span class="d">1</span> Scan my claims</div>
       <div class="step" id="stp2"><span class="d">2</span> Check my page is findable</div>
@@ -143,6 +195,24 @@
 
 <main class="wrap">
 
+  <!-- INDUSTRY + CERTIFICATES (Iceland) -->
+  <section class="card" id="card0">
+    <div class="kick">Start here · Iceland 🇮🇸</div>
+    <h2>Pick your industry, then tick the certificates you hold</h2>
+    <p style="font-size:.92rem;color:var(--ink-soft);margin-bottom:.9rem">Choose your sector and we’ll open the recognised <b>Icelandic</b> certifications for it. Tick the ones you actually hold — any claim they prove turns <b style="color:var(--ok)">green</b> instead of red when you scan. (No certificate? That’s fine — you can still make honest, specific claims.)</p>
+    <div class="indrow" id="industryRow"></div>
+    <div id="certPanel" class="creds" style="display:none">
+      <div class="creds-h" id="certPanelH"></div>
+      <div class="certmini">
+        <span class="q">Tick the ones you actually hold:</span>
+        <button class="btn-mini" id="allCerts">Select all</button>
+        <button class="btn-mini" id="noCerts">Clear</button>
+      </div>
+      <div class="creds-grid" id="credsGrid"></div>
+      <div class="trapnote" id="trapNote"></div>
+    </div>
+  </section>
+
   <!-- INPUT -->
   <section class="card" id="card1">
     <div class="kick">Step 1 · Paste</div>
@@ -151,9 +221,17 @@
     <textarea id="input" spellcheck="false"></textarea>
     <div class="row">
       <button class="btn-primary" id="scanBtn"><span class="bn">1</span>Scan my claims →</button>
-      <button class="btn-ghost" id="sampleBtn">Load paper-cup example</button>
+      <select id="exampleSelect" style="font:inherit;font-weight:600;font-size:.95rem;border:1.5px solid var(--line);border-radius:999px;padding:.65rem 1rem;color:var(--ink-soft);background:#fff;cursor:pointer">
+        <option value="">Try an example…</option>
+        <option value="farming">Local produce — vegetables</option>
+        <option value="is">Local produce — Icelandic</option>
+        <option value="cosmetics">Cosmetics — skincare</option>
+        <option value="food">Food &amp; drink — snack</option>
+        <option value="packaging">Packaging — paper cup</option>
+      </select>
       <button class="btn-ghost" id="clearBtn">Clear</button>
     </div>
+    <p style="font-size:.85rem;color:var(--ink-soft);margin-top:.7rem" id="pickedCtx"></p>
     <div class="legend">
       <span><i class="swatch" style="background:var(--red)"></i> High risk — remove or rework</span>
       <span><i class="swatch" style="background:var(--amber)"></i> Needs proof — make specific</span>
@@ -163,10 +241,11 @@
   <!-- PASS 1 RESULT -->
   <section class="card" id="summary">
     <div class="kick">Step 1 · Result — compliance</div>
-    <h2>What’s risky under the ECGT</h2>
+    <h2>What’s risky — and which rule flags it</h2>
     <div class="verdict" id="verdict"></div>
     <div class="meter" id="meter"></div>
     <div class="preview" id="preview"></div>
+    <p style="font-size:.82rem;color:var(--ink-soft);margin-top:.7rem">Each finding carries a <span class="tag law" style="font-size:.68rem">§ rule</span> chip — the specific framework that governs that word. Everything is also caught by Icelandic <b>Act 57/2005</b> and the EU <b>ECGT</b>.</p>
     <div id="findings" style="margin-top:1rem"></div>
 
     <div class="row" style="margin-top:1.2rem">
@@ -179,23 +258,32 @@
   <section class="card" id="pass3">
     <div class="kick">Step 2 · Check your live page</div>
     <h2>Is your page findable by AI &amp; Google?</h2>
-    <p style="font-size:.92rem;color:var(--ink-soft);margin-bottom:.4rem">Paste your product page’s HTML source (in your browser: right-click → <i>View Page Source</i> → select all → copy). This checks the signals AI search and Google use to <b>extract, verify and cite</b> your credentials. Runs entirely in your browser.</p>
+    <p style="font-size:.92rem;color:var(--ink-soft);margin-bottom:.4rem">Enter your page’s <b>web address</b> and we’ll fetch it, or <b>paste the HTML source</b> for full privacy. Either way we check the signals AI search &amp; Google use to <b>extract, verify and cite</b> your credentials.</p>
 
     <div class="say">
       <div class="h">★ How to say this to a client — honestly</div>
       <q>“Google says structured data isn’t a direct ranking factor, and no special schema is required for AI Overviews. What changed in 2026 is that schema became an AI <b>trust &amp; entity-verification signal</b>: structured data makes your real credentials easier for AI and Google to <b>extract, verify and cite</b> — correlated with more citations, not a guarantee. We only mark up <b>genuine, specific</b> credentials, which is exactly what the ECGT requires. One fix, two wins.”</q>
     </div>
 
-    <label class="fld" for="pageHtml" style="margin-top:.6rem">Your page’s HTML source <span style="font-weight:400;color:var(--ink-soft)">(not a web address — the actual source code)</span></label>
-    <textarea id="pageHtml" spellcheck="false" placeholder="Paste the full HTML SOURCE here — open your page, right-click → View Page Source → select all → copy. A URL like https://… won't work."></textarea>
+    <label class="fld" for="pageUrl" style="margin-top:.6rem">Your page’s web address</label>
+    <div class="row" style="margin-top:.2rem">
+      <input id="pageUrl" type="text" spellcheck="false" placeholder="https://your-site.is/product" style="flex:1 1 240px;min-width:0;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:.95rem;background:#FCFDFB;color:var(--ink)">
+      <button class="btn-primary" id="scanUrlBtn">Fetch &amp; scan →</button>
+    </div>
+    <p style="font-size:.8rem;color:var(--ink-soft);margin:.4rem 0 .2rem">We fetch the public page through a fetch proxy to read its code — only the address is sent, and it also lets us check <code>robots.txt</code> &amp; <code>llms.txt</code>. <b>Want full privacy?</b> Paste the source instead — that never leaves your browser.</p>
+    <div id="fetchStatus" style="display:none;font-size:.88rem;color:var(--leaf);font-weight:600;margin:.35rem 0"></div>
+    <div style="text-align:center;color:var(--ink-soft);font-size:.8rem;margin:.6rem 0 .3rem">— or paste the source —</div>
+
+    <label class="fld" for="pageHtml">Your page’s HTML source <span style="font-weight:400;color:var(--ink-soft)">(the actual code — View Page Source)</span></label>
+    <textarea id="pageHtml" spellcheck="false" placeholder="Paste the full HTML SOURCE here — open your page, right-click → View Page Source → select all → copy."></textarea>
     <div class="row">
-      <button class="btn-primary" id="scanPageBtn">Scan page findability →</button>
+      <button class="btn-primary" id="scanPageBtn">Scan pasted source →</button>
       <button class="btn-ghost" id="clearPageBtn">Clear</button>
       <button class="btn-ghost" id="samplePageBtn">Try a sample page</button>
     </div>
 
     <div id="scanResult" style="display:none;margin-top:1rem">
-      <div class="scoretop"><span class="big" id="scoreN">0/7</span><span class="lbl" id="scoreLbl"></span></div>
+      <div class="scoretop"><span class="big" id="scoreN">—</span><span class="lbl" id="scoreLbl"></span></div>
       <ul class="scan" id="scanList"></ul>
     </div>
 
@@ -245,11 +333,11 @@
       <a id="dossierLink" href="sample-dossier.html"><button class="btn-sample btn-big">See a sample dossier (example) →</button></a>
       <a id="contactLink" href="#"><button class="btn-primary btn-big">Get your audit</button></a>
     </div>
-    <div class="disclaimer" style="margin-top:1rem">⚠️ This is a claims-hygiene helper, not legal advice. It flags common risk patterns under Directive (EU) 2024/825 (ECGT) and related packaging/consumer rules and points to the standards typically used to substantiate them; it does not certify legal compliance. For high-stakes claims, confirm with a qualified specialist or lawyer.</div>
+    <div class="disclaimer" style="margin-top:1rem">⚠️ This is a claims-hygiene helper, not legal advice. It flags common risk patterns under Directive (EU) 2024/825 (ECGT) and related packaging/consumer rules and points to the standards typically used to substantiate them; it does not certify legal compliance. For high-stakes claims, confirm with a qualified specialist or lawyer. <b>In Iceland (EEA), the ECGT is not yet transposed — but misleading environmental claims are already actionable today under existing consumer law (Act 57/2005).</b></div>
   </section>
 
   <footer>
-    <span id="brandFoot"></span> · Green-claims &amp; findability · based on Directive (EU) 2024/825 (ECGT), applicable 27 September 2026, with references to PPWR (EU) 2025/40 and sector rules.
+    <span id="brandFoot"></span> · Green-claims &amp; findability · based on Directive (EU) 2024/825 (ECGT), applicable 27 September 2026, with references to PPWR (EU) 2025/40 and sector rules.<br><span style="opacity:.7">Build 2026-08-04 · multi-framework + live-URL findability (weighted, robots/llms, FAQ/OG checks)</span>
   </footer>
 
 </main>
@@ -274,66 +362,112 @@ const DOSSIER_URL = "sample-dossier.html";          // path to the sample dossie
    cert : {name, issuer} for JSON-LD generation (optional)
    ============================================================ */
 const TERMS = [
-  // --- Vague / generic green ---
-  {t:"environmentally friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim — banned under the ECGT unless backed by specific evidence.",safe:"[state one proven fact, e.g. “80% recycled paper”]",chk:"LCA, recognised certification, or measured data."},
-  {t:"eco-friendly",tier:"red",cat:"Vague green",why:"Classic generic claim explicitly targeted by the ECGT — meaningless without proof.",safe:"[the concrete attribute you can prove]",chk:"Specific attribute evidence or recognised ecolabel (EU Ecolabel, Nordic Swan)."},
-  {t:"eco friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim with no specific basis — restricted under the ECGT.",safe:"[the specific, evidenced benefit]",chk:"Recognised ecolabel or measured evidence."},
+  // Vague green (all industries)
+  {t:"environmentally friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim — restricted under the ECGT unless backed by specific evidence.",safe:"[state one proven fact instead]",chk:"Recognised ecolabel or measured evidence."},
+  {t:"eco-friendly",tier:"red",cat:"Vague green",why:"The classic generic claim explicitly targeted by the ECGT.",safe:"[the concrete attribute you can prove]",chk:"Recognised ecolabel or specific evidence."},
+  {t:"eco friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim with no specific basis.",safe:"[the specific, evidenced benefit]",chk:"Ecolabel or measured evidence."},
   {t:"planet-friendly",tier:"red",cat:"Vague green",why:"Vague feel-good claim; unsubstantiated by definition.",safe:"[a measurable fact — material, %, certification]",chk:"Specific attribute evidence."},
-  {t:"kind to the planet",tier:"red",cat:"Vague green",why:"Emotional, unprovable environmental claim.",safe:"[what you actually do, specifically]",chk:"Measured evidence for the specific action."},
+  {t:"kind to the planet",tier:"red",cat:"Vague green",why:"Emotional, unprovable environmental claim.",safe:"[what you actually do, specifically]",chk:"Measured evidence."},
   {t:"good for the planet",tier:"red",cat:"Vague green",why:"Broad environmental-benefit claim with no evidence.",safe:"[the specific, verifiable benefit]",chk:"LCA or measured evidence."},
-  {t:"earth-friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim — unsubstantiated.",safe:"[a measurable, provable attribute]",chk:"Specific attribute evidence."},
-  {t:"sustainable",tier:"amber",cat:"Vague green",why:"One of the most-used vague terms; allowed only if specific and substantiated.",safe:"[specific practice, e.g. “FSC-certified board”]",chk:"Evidence for the specific practice (certification or measured data)."},
-  {t:"sustainably",tier:"amber",cat:"Vague green",why:"Same risk as 'sustainable' — needs a specific, evidenced basis.",safe:"[the specific practice + its proof]",chk:"Certification or measured data for the practice."},
-  {t:"natural",tier:"amber",cat:"Vague green",why:"Implies a benefit that's rarely defined or proven.",safe:"[specific material fact, e.g. “unbleached paper board”]",chk:"Cosmetics: ISO 16128 or COSMOS. Food: ingredient evidence."},
-  {t:"green",tier:"amber",cat:"Vague green",why:"Generic environmental signalling; risky without a concrete basis.",safe:"[the specific attribute]",chk:"Specific attribute evidence or ecolabel."},
-  {t:"clean",tier:"amber",cat:"Vague green",why:"Unregulated, undefined term implying environmental/health virtue.",safe:"[define it, or drop it]",chk:"Defined criteria + evidence (no legal definition of 'clean' exists)."},
-  {t:"conscious",tier:"amber",cat:"Vague green",why:"Vague virtue-signalling with no measurable meaning.",safe:"[the specific action behind it]",chk:"Evidence of the specific action."},
-  {t:"responsibly sourced",tier:"amber",cat:"Vague green",why:"Sounds specific but usually isn't evidenced; the ECGT expects proof.",safe:"FSC-certified [chain-of-custody no. ______]",chk:"Recognised sourcing scheme (FSC, PEFC, Fairtrade).",cert:{name:"FSC Chain of Custody",issuer:"Forest Stewardship Council"}},
-  {t:"ethically sourced",tier:"amber",cat:"Vague green",why:"Unproven sourcing claim without a recognised scheme behind it.",safe:"[named scheme, e.g. Fairtrade-certified]",chk:"Recognised scheme (Fairtrade, SA8000, audited supply chain)."},
-
-  // --- Packaging ---
-  {t:"home compostable",tier:"amber",cat:"Packaging",why:"Specific and good — IF certified. Unproven, it's misleading.",safe:"home compostable (certified TÜV “OK compost HOME” [no. ______])",chk:"Home-compost certification: TÜV “OK compost HOME” or NF T51-800.",cert:{name:"OK compost HOME",issuer:"TÜV Austria"}},
-  {t:"industrially compostable",tier:"amber",cat:"Packaging",why:"Only meaningful if industrial facilities exist and it's certified.",safe:"industrially compostable to EN 13432 (where facilities exist)",chk:"EN 13432 certification.",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
-  {t:"compostable",tier:"amber",cat:"Packaging",why:"Must specify home vs industrial and be certified; 'compostable' alone misleads if it only composts industrially.",safe:"industrially compostable, certified EN 13432 [no. ______]",chk:"EN 13432 (industrial) or “OK compost HOME” (home) — name which.",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
-  {t:"biodegradable",tier:"red",cat:"Packaging",why:"Often restricted: without a timeframe and conditions it's misleading (almost everything biodegrades eventually).",safe:"[remove — rely on certified compostability instead]",chk:"Replace with certified compostability (EN 13432)."},
-  {t:"degradable",tier:"red",cat:"Packaging",why:"Vague and frequently misleading — implies a benefit without conditions.",safe:"[remove, or state exactly what happens, where, how fast]",chk:"Defined test data + conditions (usually not substantiable)."},
-  {t:"recyclable",tier:"amber",cat:"Packaging",why:"Only defensible if actually collected and recycled where the customer lives.",safe:"recyclable where local facilities accept lined paper cups",chk:"PPWR design-for-recycling criteria + real local collection."},
-  {t:"plastic-free",tier:"amber",cat:"Packaging",why:"A 'free-from' absolute — risky for cups, which are often PLA-lined. Must be literally true.",safe:"[state the actual lining — check before claiming this]",chk:"Full material disclosure proving no plastic (incl. lining)."},
-  {t:"plant-based",tier:"amber",cat:"Packaging",why:"Specific-sounding but needs a basis (which part, what %).",safe:"plant-based PLA lining [__% bio-based]",chk:"Material composition + % bio-based content."},
-  {t:"made from renewable materials",tier:"amber",cat:"Packaging",why:"Needs specifics and proof — which materials, what share.",safe:"made from [__% renewable] [material]",chk:"Material spec + verified % renewable content."},
-
-  // --- Absolutes ---
-  {t:"100% recyclable",tier:"red",cat:"Absolute",why:"Absolute + recyclability claim — very hard to substantiate for lined cups.",safe:"recyclable where facilities accept lined cups",chk:"Proof the entire item (incl. lining) is recycled in practice, per PPWR."},
-  {t:"100% compostable",tier:"red",cat:"Absolute",why:"Absolute compostability claim — misleading unless fully certified and true in real user conditions.",safe:"industrially compostable to EN 13432 (cup body)",chk:"EN 13432 certification covering ALL components (body, lid, lining).",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
-  {t:"100% natural",tier:"red",cat:"Absolute",why:"Absolute + vague — almost never literally true or provable.",safe:"[list the actual composition]",chk:"Full composition evidence (ISO 16128 for cosmetics)."},
-  {t:"zero waste",tier:"red",cat:"Absolute",why:"Strong absolute environmental claim; needs robust lifecycle proof.",safe:"[the specific waste you avoid, e.g. “we reuse all offcuts”]",chk:"Lifecycle evidence of waste avoided."},
-  {t:"no waste",tier:"amber",cat:"Absolute",why:"Absolute claim; defensible only if you can show it.",safe:"[the specific waste-avoidance practice]",chk:"Evidence of the specific practice."},
-  {t:"plastic free",tier:"amber",cat:"Absolute",why:"'Free-from' absolute — must be literally and fully true.",safe:"[verify it's 100% true, or state the actual materials]",chk:"Full material disclosure."},
-  {t:"chemical-free",tier:"red",cat:"Absolute",why:"Scientifically impossible (everything is chemicals) — a flagged misleading claim.",safe:"free from [named substances, e.g. added BPA & PFAS]",chk:"Specific excluded substances + data."},
-  {t:"toxic-free",tier:"red",cat:"Absolute",why:"Implies competitors are toxic; treated as misleading.",safe:"free from [named substance, e.g. added BPA]",chk:"Specific substances excluded + safety data."},
-  {t:"non-toxic",tier:"amber",cat:"Absolute",why:"Vague safety/environmental absolute; needs a defined basis.",safe:"[standard met, or substances excluded]",chk:"Defined standard met / substances excluded + data."},
-  {t:"carbon neutral",tier:"red",cat:"Absolute",why:"Offset-based 'carbon/climate neutral' product claims are specifically restricted under the ECGT.",safe:"[report measured reductions, not neutrality]",chk:"GHG Protocol / ISO 14064 / SBTi (offsets won't substantiate a product claim)."},
-  {t:"climate neutral",tier:"red",cat:"Absolute",why:"Offset-based neutrality claims on products are banned under the ECGT.",safe:"[measured emission reductions you've actually made]",chk:"GHG Protocol / ISO 14064 measured reductions."},
-  {t:"co2 neutral",tier:"red",cat:"Absolute",why:"Offset-based neutrality claim — restricted under the ECGT.",safe:"[concrete, evidenced reductions]",chk:"GHG Protocol / ISO 14064 measured reductions."},
-  {t:"net zero",tier:"red",cat:"Absolute",why:"A future/absolute climate claim requiring a detailed, verified plan; risky as a product label.",safe:"[only with a real, time-bound, verified plan — otherwise remove]",chk:"SBTi-validated, time-bound transition plan."},
-
-  // --- Superlatives ---
-  {t:"most sustainable",tier:"red",cat:"Superlative",why:"Comparative superlative — needs robust comparative evidence to be lawful.",safe:"[drop the superlative, or cite the specific comparison + source]",chk:"Comparative LCA vs named competitors/products."},
-  {t:"greenest",tier:"red",cat:"Superlative",why:"Unprovable comparative environmental claim.",safe:"[remove, or substantiate with a named comparison]",chk:"Comparative evidence vs the market."},
-  {t:"most eco-friendly",tier:"red",cat:"Superlative",why:"Superlative + vague green — doubly risky.",safe:"[a specific, verifiable attribute instead]",chk:"Comparative evidence + specific attribute."},
-  {t:"best",tier:"amber",cat:"Superlative",why:"Unqualified superlative; needs evidence (e.g. an independent rating).",safe:"[back it with proof, or rephrase factually]",chk:"Independent rating, award, or comparative data."},
-  {t:"purest",tier:"amber",cat:"Superlative",why:"Comparative claim implying superiority without proof.",safe:"[the specific quality instead]",chk:"Defined measure + comparative data."},
-  {t:"cleanest",tier:"amber",cat:"Superlative",why:"Superlative form of an already-vague term.",safe:"[a specific, provable point]",chk:"Defined measure + comparative data."},
-
-  // --- Future / aspirational ---
-  {t:"committed to sustainability",tier:"amber",cat:"Future/vague",why:"Aspirational claim with no measurable content.",safe:"[a specific target, action & date]",chk:"Documented target + timeframe + resourced plan."},
-  {t:"committed to",tier:"amber",cat:"Future/vague",why:"Forward-looking claims need a concrete, verifiable plan under the ECGT.",safe:"[a measurable target + date + how]",chk:"Measurable target + date + implementation plan."},
-  {t:"regenerative",tier:"amber",cat:"Future/vague",why:"Trendy but undefined; needs a specific, evidenced practice.",safe:"[the concrete practice + measured effect]",chk:"Defined practice + measured outcomes."},
-  {t:"working towards",tier:"amber",cat:"Future/vague",why:"Vague forward promise; requires a real plan to be lawful.",safe:"[the target, milestones & date]",chk:"Target + milestones + date."},
-
-  // --- Food / health ---
-  {t:"healthy",tier:"amber",cat:"Food/health",why:"On food/drink, 'healthy' is a regulated health claim under EU food law — restricted.",safe:"[specific composition fact, e.g. “no added sugar”]",chk:"EU-authorised health claim / nutrition data."},
-  {t:"guilt-free",tier:"amber",cat:"Food/health",why:"Implied health claim; risky on food/drink.",safe:"[a factual nutritional statement]",chk:"Nutritional substantiation."}
+  {t:"earth-friendly",tier:"red",cat:"Vague green",why:"Generic environmental claim — unsubstantiated.",safe:"[a measurable, provable attribute]",chk:"Specific evidence."},
+  {t:"ecological",tier:"red",cat:"Vague green",why:"No defined meaning — and it can wrongly imply organic certification.",safe:"State the specific practice, or “certified organic” only if certified.",chk:"Specific evidence or a recognised ecolabel."},
+  {t:"sustainable",tier:"amber",cat:"Vague green",why:"One of the most-used vague terms; allowed only if specific and substantiated.",safe:"[sustainable in what way — and the proof]",chk:"Evidence for the specific practice."},
+  {t:"sustainably",tier:"amber",cat:"Vague green",why:"Same risk as ‘sustainable’ — needs an evidenced basis.",safe:"[the specific practice + its proof]",chk:"Certification or measured data."},
+  {t:"natural",tier:"amber",cat:"Vague green",why:"Implies a benefit that is rarely defined or proven.",safe:"[what it contains or excludes, specifically]",chk:"Cosmetics: ISO 16128 / COSMOS. Food: ingredient evidence."},
+  {t:"green",tier:"amber",cat:"Vague green",why:"Generic environmental signalling; risky without a concrete basis.",safe:"[the specific attribute]",chk:"Specific evidence or ecolabel."},
+  {t:"clean",tier:"amber",cat:"Vague green",why:"Unregulated, undefined term implying environmental or health virtue.",safe:"[define it and link the evidence, or drop it]",chk:"No legal definition exists — define criteria + evidence."},
+  {t:"conscious",tier:"amber",cat:"Vague green",why:"Vague virtue-signalling with no measurable meaning.",safe:"[the specific action behind it]",chk:"Evidence of the action."},
+  {t:"responsibly sourced",tier:"amber",cat:"Sourcing",why:"Sounds specific but is usually unevidenced.",safe:"[name the scheme, e.g. FSC-certified, cert no.]",chk:"Recognised sourcing scheme (FSC, PEFC, Fairtrade).",cert:{name:"FSC Chain of Custody",issuer:"Forest Stewardship Council"}},
+  {t:"ethically sourced",tier:"amber",cat:"Sourcing",why:"Unproven sourcing claim without a recognised scheme.",safe:"[cite the certification or audited practice]",chk:"Recognised scheme (Fairtrade, SA8000)."},
+  // Absolutes
+  {t:"100% natural",tier:"red",cat:"Absolute",why:"Absolute + vague — almost never literally true or provable.",safe:"[list what it is and isn’t]",chk:"Full composition evidence."},
+  {t:"zero waste",tier:"red",cat:"Absolute",why:"Strong absolute claim; needs robust lifecycle proof.",safe:"[the specific waste you avoid]",chk:"Lifecycle evidence."},
+  {t:"chemical-free",tier:"red",cat:"Absolute",why:"Scientifically impossible — everything is chemicals.",safe:"free from [named substances, e.g. added parabens]",chk:"Named excluded substances + data."},
+  {t:"toxic-free",tier:"red",cat:"Absolute",why:"Implies competitors are toxic; treated as misleading.",safe:"free from [named substance]",chk:"Substances excluded + safety data."},
+  {t:"non-toxic",tier:"amber",cat:"Absolute",why:"Vague safety absolute; needs a defined basis.",safe:"[the standard met, or substances excluded]",chk:"Defined standard + data."},
+  {t:"carbon neutral",tier:"red",cat:"Climate",why:"Offset-based neutrality claims on products are restricted/banned under the ECGT.",safe:"[report measured reductions, not neutrality]",chk:"GHG Protocol / ISO 14064 reductions (offsets will not substantiate this)."},
+  {t:"climate neutral",tier:"red",cat:"Climate",why:"Offset-based neutrality claims on products are banned under the ECGT.",safe:"[measured emission reductions you have made]",chk:"GHG Protocol / ISO 14064."},
+  {t:"co2 neutral",tier:"red",cat:"Climate",why:"Offset-based neutrality claim — restricted.",safe:"[concrete, evidenced reductions]",chk:"GHG Protocol / ISO 14064."},
+  {t:"net zero",tier:"red",cat:"Climate",why:"Absolute future climate claim needing a verified, time-bound plan.",safe:"[only with a verified plan — otherwise remove]",chk:"SBTi-validated transition plan."},
+  {t:"climate positive",tier:"red",cat:"Climate",why:"Stronger than neutral and even harder to substantiate; offset-based versions restricted.",safe:"[state measured reductions instead]",chk:"Verified measured data."},
+  {t:"carbon offset",tier:"amber",cat:"Climate",why:"Offsetting cannot substantiate a ‘neutral’ product claim under the ECGT.",safe:"[describe the actual reductions; mention offsets separately and honestly]",chk:"Verified project data + your own reduction data."},
+  {t:"plastic-free",tier:"amber",cat:"Absolute",why:"A ‘free-from’ absolute — must be literally true, including linings and coatings.",safe:"[only if 100% true; otherwise state the actual materials]",chk:"Full material disclosure."},
+  {t:"plastic free",tier:"amber",cat:"Absolute",why:"‘Free-from’ absolute — must be fully true.",safe:"[verify, or state the actual materials]",chk:"Full material disclosure."},
+  // Superlatives
+  {t:"most sustainable",tier:"red",cat:"Superlative",why:"Comparative superlative needing robust comparative evidence.",safe:"[drop it, or cite the named comparison]",chk:"Comparative LCA vs named products."},
+  {t:"greenest",tier:"red",cat:"Superlative",why:"Unprovable comparative environmental claim.",safe:"[remove, or substantiate with a named comparison]",chk:"Comparative evidence."},
+  {t:"most eco-friendly",tier:"red",cat:"Superlative",why:"Superlative plus vague green — doubly risky.",safe:"[a specific, verifiable attribute]",chk:"Comparative evidence."},
+  {t:"best",tier:"amber",cat:"Superlative",why:"Unqualified superlative; needs evidence.",safe:"[back it with proof, or rephrase factually]",chk:"Independent rating or comparative data."},
+  {t:"purest",tier:"amber",cat:"Superlative",why:"Comparative claim implying superiority without proof.",safe:"[the specific quality instead]",chk:"Defined measure + comparison."},
+  // Future / vague
+  {t:"committed to sustainability",tier:"amber",cat:"Future/vague",why:"Aspirational claim with no measurable content.",safe:"[a specific target, action and date]",chk:"Documented target + timeframe + plan."},
+  {t:"committed to",tier:"amber",cat:"Future/vague",why:"Forward-looking claims need a concrete, verifiable plan.",safe:"[measurable target + date + how]",chk:"Target + milestones + plan."},
+  {t:"regenerative",tier:"amber",cat:"Future/vague",why:"No legal definition — vague and greenwashing-risky as a standalone label.",safe:"Tie it to specific practices (no-till, cover crops, rotational grazing) or a verification.",chk:"Documented practices + measured outcomes, or a regenerative verification."},
+  {t:"working towards",tier:"amber",cat:"Future/vague",why:"Vague forward promise; requires a real plan.",safe:"[the target, milestones and date]",chk:"Target + milestones + date."},
+  // Protected terms
+  {t:"organic",tier:"red",cat:"Protected term",why:"Legally protected (EU Reg 2018/848) — using it without valid certification is an offence, not just a marketing risk.",safe:"Only if certified: name the scheme + certificate number; otherwise remove.",chk:"Valid organic certificate from your national body (in Iceland: Vottunarstofan Tún).",cert:{name:"Organic (EU 2018/848)",issuer:"Vottunarstofan Tún"}},
+  {t:"lífrænt",tier:"red",cat:"Protected term",why:"Icelandic for ‘organic’ — legally protected; requires valid certification (Tún).",safe:"Aðeins með gildri vottun: nefndu vottorð + númer; annars fjarlægðu.",chk:"Gild lífræn vottun (Tún).",cert:{name:"Lífræn vottun (EU 2018/848)",issuer:"Vottunarstofan Tún"}},
+  {t:"lífræn",tier:"red",cat:"Protected term",why:"Icelandic ‘organic’ (declension) — legally protected.",safe:"Aðeins með gildri vottun; annars fjarlægðu.",chk:"Gild lífræn vottun (Tún)."},
+  {t:"lífrænar",tier:"red",cat:"Protected term",why:"Icelandic ‘organic’ (declension) — legally protected.",safe:"Aðeins með gildri vottun; annars fjarlægðu.",chk:"Gild lífræn vottun (Tún)."},
+  // Farming
+  {t:"grass-fed",tier:"amber",cat:"Farming",why:"No single legal definition — must be true and verifiable.",safe:"“100% grass-fed” or “grass-fed [X] days/year” — feeding records.",chk:"Feeding records."},
+  {t:"pasture-raised",tier:"amber",cat:"Farming",why:"Undefined marketing term; must reflect documented practice.",safe:"“Outdoors on pasture [X] days/year”.",chk:"Grazing records."},
+  {t:"free-range",tier:"amber",cat:"Farming",why:"Legally defined for EU eggs/poultry — loose use is misleading.",safe:"[only if the EU standard is met; otherwise describe conditions]",chk:"EU marketing standard for the species."},
+  {t:"pesticide-free",tier:"amber",cat:"Farming",why:"A ‘free-from’ absolute — must be true across the whole crop and season.",safe:"“No synthetic pesticides used” (if true) — spray records.",chk:"Full input records."},
+  {t:"spray-free",tier:"amber",cat:"Farming",why:"Absolute claim; must be literally true.",safe:"[state exactly what is and isn’t sprayed]",chk:"Input records."},
+  {t:"gmo-free",tier:"amber",cat:"Farming",why:"Must be accurate and is regulated for some products.",safe:"[only if verifiable; state the basis]",chk:"Supply-chain documentation."},
+  {t:"farm fresh",tier:"amber",cat:"Farming",why:"Vague marketing phrase with no defined meaning.",safe:"[a specific fact — harvest-to-delivery time, location]",chk:"Operational records."},
+  {t:"locally sourced",tier:"amber",cat:"Farming",why:"‘Local’ is undefined; risky without specifics.",safe:"[“grown in [place], [X] km away”]",chk:"Sourcing records."},
+  // Food & drink
+  {t:"nutrient-dense",tier:"amber",cat:"Food",why:"A testable nutritional claim — needs data; may be a regulated health claim.",safe:"[back with a nutrient test, or reword]",chk:"Nutrient analysis; Reg 1924/2006."},
+  {t:"healthy",tier:"amber",cat:"Food",why:"On food and drink this is a regulated health claim.",safe:"[a specific composition fact, e.g. “no added sugar”]",chk:"EU-authorised health claim / nutrition data."},
+  {t:"guilt-free",tier:"amber",cat:"Food",why:"Implied health claim; risky on food and drink.",safe:"[a factual nutritional statement]",chk:"Nutritional substantiation."},
+  {t:"superfood",tier:"amber",cat:"Food",why:"Marketing term with no legal or nutritional definition; health implications are regulated.",safe:"[state the actual nutrient content]",chk:"Nutrition data; Reg 1924/2006."},
+  {t:"compostable",tier:"amber",cat:"Packaging",why:"Must specify home vs industrial and be certified.",safe:"“industrially compostable, certified EN 13432”",chk:"EN 13432 or OK compost HOME — name which.",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
+  {t:"industrially compostable",tier:"amber",cat:"Packaging",why:"Only meaningful if certified and facilities exist for the customer.",safe:"industrially compostable to EN 13432 (where facilities exist)",chk:"EN 13432 certificate.",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
+  {t:"home compostable",tier:"amber",cat:"Packaging",why:"Specific and good — if certified. Unproven, it misleads.",safe:"home compostable (certified OK compost HOME)",chk:"OK compost HOME / NF T51-800.",cert:{name:"OK compost HOME",issuer:"TÜV Austria"}},
+  {t:"100% compostable",tier:"red",cat:"Absolute",why:"Absolute compostability claim — misleading unless fully certified for every component.",safe:"[state the certified standard and scope instead of “100%”]",chk:"EN 13432 covering all components.",cert:{name:"EN 13432 Industrial Compostability",issuer:"TÜV Austria"}},
+  {t:"biodegradable",tier:"red",cat:"Packaging",why:"Without timeframe and conditions this is misleading — almost everything biodegrades eventually.",safe:"[replace with a certified compostability claim, or remove]",chk:"Certified compostability (EN 13432)."},
+  {t:"recyclable",tier:"amber",cat:"Packaging",why:"Only defensible if actually collected and recycled where the customer lives.",safe:"recyclable where local facilities accept [material]",chk:"PPWR design-for-recycling + local collection reality."},
+  {t:"100% recyclable",tier:"red",cat:"Absolute",why:"Absolute recyclability claim — very hard to substantiate.",safe:"[state realistic, conditional recyclability]",chk:"Proof the whole item is recycled in practice."},
+  {t:"plant-based",tier:"amber",cat:"Packaging",why:"Specific-sounding but needs a basis — which part, what share.",safe:"[name the material and percentage]",chk:"Material spec + % bio-based."},
+  {t:"vegan",tier:"amber",cat:"Food",why:"Not legally defined in the EU — needs a consistent, verifiable basis.",safe:"[state the basis, or use a recognised vegan certification]",chk:"Vegan certification (e.g. V-Label) or documented formulation.",cert:{name:"V-Label (Vegan)",issuer:"V-Label GmbH"}},
+  // Cosmetics
+  {t:"clean beauty",tier:"red",cat:"Cosmetics",why:"Marketing term with no legal definition; implies rival products are unsafe.",safe:"[name what you exclude and why]",chk:"No legal definition exists — list excluded substances + data."},
+  {t:"cruelty-free",tier:"red",cat:"Cosmetics",why:"Animal testing for cosmetics is already banned EU-wide, so this claims mere legal compliance — treated as non-compliant under the Common Criteria, and the guidance extends this to logos.",safe:"Describe what was actually verified — e.g. “independently audited fixed cut-off date across our global supply chain” — rather than asserting “cruelty-free”.",chk:"Reg 655/2013 Common Criteria (legal-compliance criterion). A Leaping Bunny certificate evidences the audit, but does not make the words safe."},
+  {t:"dermatologically tested",tier:"amber",cat:"Cosmetics",why:"Says testing happened, not that results were good — regulators treat vague versions as misleading.",safe:"[state what was tested and the result]",chk:"Test report."},
+  {t:"hypoallergenic",tier:"amber",cat:"Cosmetics",why:"No agreed legal definition; implies a safety level that must be evidenced.",safe:"[state the allergen testing actually done]",chk:"Allergen test data (Reg 1223/2009)."},
+  {t:"reef-safe",tier:"red",cat:"Cosmetics",why:"No legal definition and no agreed test — widely challenged as greenwashing.",safe:"[name the UV filters you exclude]",chk:"Formulation data; no recognised standard exists."},
+  {t:"paraben-free",tier:"red",cat:"Cosmetics",why:"Explicitly not accepted under the Common Criteria: parabens are lawful and safe as regulated, so the claim denigrates an entire authorised ingredient group (Fairness).",safe:"[remove it — describe what the formula does contain instead]",chk:"Reg 655/2013 Annex III. Same applies to “free from phenoxyethanol”, “free from preservatives”, “free from perfume”."},
+  {t:"microplastic-free",tier:"amber",cat:"Cosmetics",why:"Must be literally true against the regulatory definition of microplastics.",safe:"[only if verified against the EU definition]",chk:"Formulation data vs REACH microplastic restriction (Reg 2023/2055)."},
+  {t:"microbead-free",tier:"amber",cat:"Cosmetics",why:"Rinse-off microbeads are already banned by law (REACH), so advertising it markets mere legal compliance.",safe:"[drop it — it’s a legal requirement, not a benefit]",chk:"REACH microplastics restriction."},
+  {t:"preservative-free",tier:"red",cat:"Cosmetics",why:"‘Free-from’ claim that denigrates a legal, safety-assessed ingredient group — non-compliant, and usually untrue (something is preserving the product).",safe:"[remove — describe the formulation factually]",chk:"Reg 655/2013 Common Criteria (Fairness)."},
+  {t:"fragrance-free",tier:"amber",cat:"Cosmetics",why:"Only true if the formula contains NO perfuming ingredient at all — including ingredients added for another purpose that also scent.",safe:"[only if zero perfuming ingredients; check the full INCI]",chk:"Full formulation review; Technical Document Annex III."},
+  {t:"perfume-free",tier:"amber",cat:"Cosmetics",why:"Same as ‘fragrance-free’ — must contain no perfuming ingredient whatsoever.",safe:"[only if literally true across the whole formula]",chk:"Full formulation review."},
+  {t:"no nasties",tier:"red",cat:"Cosmetics",why:"A ‘clean beauty’ phrase implying other legal cosmetics contain something harmful — fails Fairness and has no definition.",safe:"[remove; name specific, provable formulation facts]",chk:"Reg 655/2013 Common Criteria."},
+  {t:"sunblock",tier:"red",cat:"Cosmetics",why:"Banned sunscreen claim — overstates protection; no sunscreen blocks all UV.",safe:"Use the SPF number/category (e.g. “SPF 50, high protection”).",chk:"Rec. 2006/647 (SPF/UVA rules)."},
+  {t:"waterproof",tier:"red",cat:"Cosmetics",why:"Banned sunscreen claim — untrue; no sunscreen is waterproof.",safe:"“water resistant” only if immersion-tested.",chk:"ISO 18861 / ISO 16217 water-resistance testing."},
+  {t:"total protection",tier:"red",cat:"Cosmetics",why:"Banned sunscreen claim — implies 100% protection, which is impossible.",safe:"State the SPF category and to reapply.",chk:"Rec. 2006/647."},
+  // Tourism (kept for robustness; no tourism button in this build)
+  {t:"eco-tour",tier:"amber",cat:"Tourism",why:"‘Eco’ prefix with no defined basis; needs a recognised certification or specific practice.",safe:"[name the certification or the specific practices]",chk:"Vakinn, Green Key, Travelife or GSTC-recognised standard."},
+  {t:"eco-lodge",tier:"amber",cat:"Tourism",why:"Undefined marketing label unless backed by certification.",safe:"[name the certification or the measurable features]",chk:"Green Key / Nordic Swan / GSTC-recognised standard."},
+  {t:"green hotel",tier:"amber",cat:"Tourism",why:"Generic green label; needs a recognised basis.",safe:"[name the certification held]",chk:"Green Key, Nordic Swan or equivalent."},
+  {t:"sustainable travel",tier:"amber",cat:"Tourism",why:"Broad, undefined claim — exactly the kind the ECGT targets.",safe:"[the specific practice and its evidence]",chk:"GSTC-recognised certification or measured data."},
+  {t:"responsible tourism",tier:"amber",cat:"Tourism",why:"Aspirational phrase with no measurable content.",safe:"[the specific commitments and how they’re verified]",chk:"Certification or documented practice."},
+  {t:"eco-certified",tier:"amber",cat:"Tourism",why:"Meaningless unless you name the certification — and hold it.",safe:"[name the scheme and certificate number]",chk:"The named certification (Vakinn, Green Key, Blue Flag, Travelife, GSTC)."},
+  // Icelandic
+  {t:"vistvænt",tier:"red",cat:"Icelandic",why:"Icelandic ‘eco-friendly’ — generic, unsubstantiated by definition.",safe:"[nefndu eina sannreynda staðreynd í staðinn]",chk:"Recognised ecolabel or measured evidence."},
+  {t:"vistvæn",tier:"red",cat:"Icelandic",why:"Icelandic ‘eco-friendly’ (declension) — generic.",safe:"[nefndu sannreynda staðreynd]",chk:"Ecolabel or measured evidence."},
+  {t:"umhverfisvænt",tier:"red",cat:"Icelandic",why:"Icelandic ‘environmentally friendly’ — generic green claim.",safe:"[nefndu tiltekinn, sannanlegan ávinning]",chk:"Measured evidence."},
+  {t:"umhverfisvæn",tier:"red",cat:"Icelandic",why:"Icelandic ‘environmentally friendly’ (declension).",safe:"[tiltekinn, sannanlegur ávinningur]",chk:"Measured evidence."},
+  {t:"sjálfbært",tier:"amber",cat:"Icelandic",why:"Icelandic ‘sustainable’ — only if specific and substantiated.",safe:"[tilgreindu aðgerðina og sönnun hennar]",chk:"Evidence for the practice."},
+  {t:"sjálfbær",tier:"amber",cat:"Icelandic",why:"Icelandic ‘sustainable’ (declension).",safe:"[tilgreind aðgerð + sönnun]",chk:"Evidence for the practice."},
+  {t:"náttúrulegt",tier:"amber",cat:"Icelandic",why:"Icelandic ‘natural’ — rarely defined or proven.",safe:"[segðu hvað varan inniheldur eða útilokar]",chk:"Composition evidence."},
+  {t:"náttúruleg",tier:"amber",cat:"Icelandic",why:"Icelandic ‘natural’ (declension).",safe:"[tilteknar staðreyndir um innihald]",chk:"Composition evidence."},
+  {t:"vistræktað",tier:"amber",cat:"Icelandic",why:"Icelandic ‘eco-cultivated’ — not a defined or certified term.",safe:"[lýstu tilteknum aðferðum: t.d. “plóglaust”]",chk:"Documented practices; verification if ‘regenerative’ is meant."},
+  {t:"kolefnishlutlaust",tier:"red",cat:"Icelandic",why:"Icelandic ‘carbon neutral’ — offset-based neutrality is restricted under the ECGT.",safe:"[greindu frá mældum samdrætti, ekki kolefnisjöfnun]",chk:"GHG Protocol / ISO 14064."},
+  {t:"grænt",tier:"amber",cat:"Icelandic",why:"Icelandic ‘green’ — generic environmental signalling.",safe:"[settu tiltekinn, sannanlegan eiginleika í staðinn]",chk:"Specific evidence or ecolabel."},
+  {t:"plastlaust",tier:"amber",cat:"Icelandic",why:"Icelandic ‘plastic-free’ — an absolute; must be literally true.",safe:"[aðeins ef 100% satt; annars tilgreindu efnin]",chk:"Full material disclosure."}
 ];
 
 /* ---------- helpers ---------- */
@@ -344,29 +478,184 @@ const sorted=[...TERMS].sort((a,b)=>b.t.length-a.t.length);
 const lookup={}; sorted.forEach(o=>{lookup[o.t.toLowerCase()]=o;});
 const RE=new RegExp("(?<![A-Za-z0-9])("+sorted.map(o=>esc(o.t)).join("|")+")(?![A-Za-z0-9])","gi");
 
+/* Which legal framework mainly governs each flagged word — shown as a §-chip on every finding.
+   Everything is ALSO caught by Icelandic Act 57/2005 + the EU ECGT; the chip names the most specific rule. */
+const LAW_BY_CAT={
+  "Vague green":"EU ECGT · ISO 14021",
+  "Sourcing":"EU ECGT",
+  "Absolute":"EU ECGT · ISO 14021",
+  "Climate":"EU ECGT · ISO 14068",
+  "Superlative":"EU ECGT",
+  "Future/vague":"EU ECGT",
+  "Protected term":"Organic Reg 2018/848",
+  "Farming":"EU ECGT",
+  "Food":"Nutrition Claims 1924/2006",
+  "Packaging":"ISO 14021 · PPWR",
+  "Cosmetics":"Cosmetics Reg 655/2013",
+  "Tourism":"EU ECGT",
+  "Icelandic":"Act 57/2005 · EU ECGT"
+};
+const LAW_OVERRIDE={
+  "organic":"Organic Reg 2018/848","lífrænt":"Organic Reg 2018/848","lífræn":"Organic Reg 2018/848","lífrænar":"Organic Reg 2018/848",
+  "free-range":"EU marketing standards","gmo-free":"EU GMO rules",
+  "sunblock":"Sunscreen Rec 2006/647","waterproof":"Sunscreen Rec 2006/647","total protection":"Sunscreen Rec 2006/647",
+  "vegan":"EU ECGT · no legal definition",
+  "biodegradable":"ISO 14021 · PPWR","degradable":"ISO 14021 · PPWR",
+  "carbon neutral":"EU ECGT · ISO 14068","climate neutral":"EU ECGT · ISO 14068","co2 neutral":"EU ECGT · ISO 14068",
+  "climate positive":"EU ECGT · ISO 14068","carbon offset":"EU ECGT · ISO 14068","net zero":"EU ECGT · SBTi",
+  "kolefnishlutlaust":"EU ECGT · ISO 14068","carbon-neutral flight":"EU ECGT · ISO 14068",
+  "healthy":"Nutrition & Health Claims 1924/2006","superfood":"Nutrition & Health Claims 1924/2006","guilt-free":"Nutrition & Health Claims 1924/2006","nutrient-dense":"Nutrition & Health Claims 1924/2006"
+};
+function lawFor(d){return LAW_OVERRIDE[d.t.toLowerCase()]||LAW_BY_CAT[d.cat]||"EU ECGT";}
+
 const SAMPLE=`Introducing the GreenLeaf Paper Cup — the eco-friendly choice for cafés that care.
 
 Our cups are 100% compostable and biodegradable, made from natural, responsibly sourced paper. Completely plastic-free and chemical-free, they're kind to the planet and carbon neutral across every cup.
 
 We believe we make the most sustainable cup on the market. Fully recyclable, plant-based, and committed to a zero waste future — because the planet deserves the best.`;
 
+const SAMPLE_FARM=`Our vegetables are grown with ecological and regenerative methods in living Icelandic soil. We never use synthetic pesticides. 100% natural, sustainable and good for the planet — nutrient-dense, farm fresh produce from our eco-friendly, organic garden. Locally sourced and delivered fresh.`;
+
+const SAMPLE_IS=`Grænmetið okkar er vistræktað, lífrænt, náttúrulegt og sjálfbært. Umhverfisvænt, grænt, vistvænt og kolefnishlutlaust — ræktað í íslenskum jarðvegi.`;
+
+const SAMPLE_COS=`A clean beauty ritual: 100% natural, organic and chemical-free skincare. Dermatologically tested, hypoallergenic and cruelty-free. Reef-safe, paraben-free and kind to the planet — the purest, most eco-friendly formula you'll find.`;
+
+const SAMPLE_FOOD=`Our snacks are all natural, sustainable and good for the planet. Packed in 100% compostable, biodegradable, plastic-free wrappers. Responsibly sourced, vegan and carbon neutral — the healthiest, cleanest superfood on the market.`;
+
+const SAMPLES={farming:SAMPLE_FARM,is:SAMPLE_IS,cosmetics:SAMPLE_COS,food:SAMPLE_FOOD,packaging:SAMPLE};
+
 const $=id=>document.getElementById(id);
 let lastFindings=[];
 
+/* Industries offered in this build (Iceland) */
+const INDUSTRIES=[
+  {id:"farming",label:"Farmed locally",note:"Icelandic crops, livestock & local produce",ico:"<svg width='26' height='26' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' style='vertical-align:middle'><path d='M12 8.2C11 5.4 9.2 4.3 7.4 4.3 8 6.3 9.4 7.5 12 8.2Z' fill='#3E7A52'/><path d='M12 8.2C13 5.4 14.8 4.3 16.6 4.3 16 6.3 14.6 7.5 12 8.2Z' fill='#3E7A52'/><path d='M12 8.2C11.9 5.6 12 4.4 12 3.4 11 4.8 11 6.3 12 8.2Z' fill='#3E7A52'/><path d='M8.4 9.4C10.7 8.1 13.3 8.1 15.6 9.4L12 20.8Z' fill='#E7F2EA' stroke='#3E7A52' stroke-width='1.6' stroke-linejoin='round'/><line x1='10.2' y1='12' x2='11' y2='12' stroke='#3E7A52' stroke-width='1' opacity='.5' stroke-linecap='round'/><line x1='13' y1='14' x2='13.8' y2='14' stroke='#3E7A52' stroke-width='1' opacity='.5' stroke-linecap='round'/></svg>"},
+  {id:"cosmetics",label:"Cosmetics",note:"Skincare, beauty",ico:"<svg width='26' height='26' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' style='vertical-align:middle'><rect x='3.5' y='9' width='17' height='11.5' rx='3.2' fill='#E7F2EA' stroke='#3E7A52' stroke-width='1.6'/><rect x='6' y='4.6' width='12' height='4.8' rx='2.2' fill='#3E7A52'/><line x1='7.5' y1='14.5' x2='16.5' y2='14.5' stroke='#3E7A52' stroke-width='1.3' stroke-linecap='round' opacity='.5'/></svg>"},
+  {id:"food",label:"Food & drink",note:"Producers, seafood, drinks",ico:"<svg width='26' height='26' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' style='vertical-align:middle'><path d='M7 4V8.2c0 1 .7 1.7 1.7 1.8L8.5 20' fill='none' stroke='#3E7A52' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/><path d='M9.4 4V8.2c0 1-.7 1.7-1.7 1.8' fill='none' stroke='#3E7A52' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/><path d='M15.6 4c-1.6 0-2.6 2-2.6 4.2 0 1.7 1 2.6 2.2 2.8L15 20' fill='#E7F2EA' stroke='#3E7A52' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>"},
+  {id:"packaging",label:"Packaging",note:"Cups, wrappers, containers",ico:"<svg width='26' height='26' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' style='vertical-align:middle'><rect x='4' y='6.8' width='16' height='13.2' rx='1.6' fill='#E7F2EA' stroke='#3E7A52' stroke-width='1.6'/><line x1='4' y1='11' x2='20' y2='11' stroke='#3E7A52' stroke-width='1.5'/><line x1='12' y1='6.8' x2='12' y2='11' stroke='#3E7A52' stroke-width='1.5'/></svg>"}
+];
+
+/* Icelandic certifications, by industry, and the claims each can substantiate.
+   tier A = established by a public authority · B = independent third-party scheme
+   · C = NOT a certification. Verified 21 Jul 2026 — re-verify before relying on any. */
+const CERTS=[
+  // Farming & food — organic / regenerative / origin
+  {id:"org_is",type:"Organic",label:"Organic — Vottunarstofan Tún",note:"lífrænt · Iceland's only organic certifier",scope:"IS",i:["farming","food"],covers:["organic","lífrænt","lífræn","lífrænar"],link:"https://www.tun.is/",tier:"B"},
+  {id:"eu_organic",type:"Organic",label:"EU Organic (Euro-leaf, Reg. 2018/848)",note:"the mark that legally governs the word “organic” in the EEA — Tún certifies to it",i:["farming","food"],covers:["organic","lífrænt","lífræn","lífrænar"],link:"https://agriculture.ec.europa.eu/farming/organic-farming/organic-logo_en",tier:"A",warn:"To sell as “organic” in Iceland a product must be EU-certified (via Tún) OR imported under an EU-recognised equivalence arrangement — a foreign organic label (USDA, JAS, KRAV…) is NOT automatically valid here."},
+  {id:"agw",type:"Regenerative",label:"A Greener World — Certified Regenerative",note:"no organic base · most accessible",i:["farming","food"],covers:["regenerative"],link:"https://agreenerworld.org/certifications/certified-regenerative/",tier:"B"},
+  {id:"roc",type:"Regenerative",label:"Regenerative Organic Certified (ROC)",note:"regenerative + organic + social/welfare (needs an organic base)",i:["farming","food"],covers:["regenerative"],link:"https://regenorganic.org/",tier:"B",warn:"US-based. Backs “regenerative”, but does NOT by itself authorise the word “organic” for EEA sale — you still need EU/Tún organic certification."},
+  {id:"regenagri",type:"Regenerative",label:"Regenagri",note:"European (Control Union)",i:["farming","food"],covers:["regenerative"],link:"https://regenagri.org/",tier:"B"},
+  {id:"eov",type:"Regenerative",label:"Ecological Outcome Verification (EOV) / Land to Market",note:"best for grazing & livestock",i:["farming"],covers:["regenerative"],link:"https://savory.global/eov/",tier:"B"},
+  {id:"demeter",type:"Biodynamic",label:"Demeter (biodynamic)",note:"requires an organic base",i:["farming","food"],covers:["regenerative"],link:"https://demeter.net/",tier:"B"},
+  {id:"agw_welfare",type:"Animal welfare",label:"Certified Animal Welfare Approved by AGW",note:"audited pasture-based high-welfare (A Greener World)",i:["farming","food"],covers:["pasture-raised","free-range"],link:"https://agreenerworld.org/certifications/animal-welfare-approved/",tier:"B"},
+  {id:"agw_grassfed",type:"Grass-fed",label:"Certified Grassfed by AGW",note:"100% grass-fed, independently audited",i:["farming","food"],covers:["grass-fed"],link:"https://agreenerworld.org/certifications/certified-grassfed/",tier:"B"},
+  {id:"nongmo",type:"Non-GMO",label:"Non-GMO Project Verified",note:"North-American non-GMO standard",i:["farming","food"],covers:["gmo-free"],link:"https://www.nongmoproject.org/",tier:"B",warn:"US/Canada scheme. In the EU/EEA, GMO labelling is separately regulated — verify it fits EU rules before relying on it."},
+  {id:"globalgap",type:"Food safety",label:"GLOBALG.A.P. (Integrated Farm Assurance)",note:"good agricultural practice · food safety & traceability",i:["farming","food"],covers:[],link:"https://globalgap.org/what-we-offer/solutions/ifa-fruit-and-vegetables/",tier:"B",warn:"A B2B/retail-supply credential — do NOT put it on consumer packaging as if it were an environmental claim."},
+  {id:"grasp",type:"Labour",label:"GLOBALG.A.P. GRASP",note:"add-on assessing labour & social practice",i:["farming","food"],covers:[],link:"https://www.globalgap.org/what-we-offer/solutions/grasp-observers/",tier:"B",warn:"B2B social-practice assessment — not a consumer green claim."},
+  {id:"iso14001",type:"Env. management",label:"ISO 14001 / EMAS",note:"certified environmental management system",i:["farming","food","cosmetics","packaging"],covers:[],link:"https://www.iso.org/iso-14001-environmental-management.html",tier:"B",warn:"Certifies the organisation’s management system, NOT the product — don't imply the product itself is “green”."},
+  {id:"prov_is",type:"Origin",label:"Íslenskt staðfest",note:"Icelandic origin",scope:"IS",i:["farming","food"],covers:[],link:"https://stadfest.is/",tier:"B",warn:"Origin/provenance only — proves it's Icelandic, NOT that it's greener, healthier or higher-welfare."},
+  {id:"isl_graenmeti",type:"Origin",label:"Íslenskt grænmeti",note:"SFG · origin mark for Icelandic-grown vegetables",scope:"IS",i:["farming","food"],covers:[],link:"https://islenskt.is/english/",tier:"B",warn:"Origin only — proves it's Icelandic-grown, NOT that it's organic or greener."},
+  {id:"lamb_pdo",type:"Origin (PDO)",label:"Icelandic Lamb — PDO (Íslenskt lambakjöt)",note:"EU Protected Designation of Origin · the first Icelandic PDO (2023)",scope:"IS",i:["farming","food"],covers:[],link:"https://www.icelandiclamb.is/blogs/protected-designation-of-origin/",tier:"A",warn:"A legally protected origin+method guarantee — still an origin/quality claim, not a standalone sustainability claim."},
+  {id:"beint",type:"Direct sales",label:"Beint frá býli (Direct from the farm)",note:"farm-to-consumer producers’ association",scope:"IS",i:["farming","food"],covers:[],link:"https://www.beintfrabyli.is/",tier:"C",warn:"A membership mark with its own guidelines — NOT an independently audited certification. Don't present it as proof of organic/eco."},
+  {id:"skogarkolefni",type:"Carbon",label:"Skógarkolefni (Icelandic Forest Carbon)",note:"verified afforestation carbon units on your land",scope:"IS",i:["farming"],covers:[],link:"https://www.skogarkolefni.is/en",tier:"B",warn:"Backs specific, measured carbon removals from tree-planting — it does NOT license an offset-based “carbon neutral” product claim (banned by the ECGT)."},
+  {id:"votlendi",type:"Carbon",label:"Votlendissjóður (Wetland Fund)",note:"carbon via re-wetting drained farmland wetlands",scope:"IS",i:["farming"],covers:[],link:"https://votlendi.is/",tier:"B",warn:"Supports a specific, measured restoration claim — not a blanket “carbon neutral”."},
+  {id:"baendur_landid",type:"Land restoration",label:"Bændur græða landið (Farmers heal the land)",note:"state land-reclamation grant programme",scope:"IS",i:["farming"],covers:[],link:"https://island.is/en/news/Farmers-grants-for-land-reclamation",tier:"A",warn:"Participation in a state programme — not a product certificate. Describe the specific reclamation you did."},
+  // Food — sourcing / packaging on food / nutrition
+  {id:"fsc",type:"Sourcing",label:"FSC / PEFC certified sourcing",note:"paper, board, fibre",i:["food","cosmetics","packaging"],covers:["responsibly sourced","ethically sourced"],link:"https://fsc.org/en",tier:"B"},
+  {id:"en13432",type:"Compostable",label:"EN 13432 industrial compostability",note:"the standard behind “compostable”",i:["food","packaging"],covers:["compostable","industrially compostable","100% compostable"],link:"https://www.tuv-at.be/green-marks/certifications/ok-compost-industrial/",tier:"B"},
+  {id:"okhome",type:"Compostable",label:"OK compost HOME",note:"the stricter home-compostable certificate",i:["food","packaging"],covers:["home compostable"],link:"https://www.tuv-at.be/green-marks/certifications/ok-compost-home/",tier:"B"},
+  {id:"dincertco_home",type:"Compostable",label:"DIN CERTCO — Home &amp; garden compostable (NF T51-800)",note:"home-composting certifier (e.g. Colombier cupstock cert 9P0066)",i:["food","packaging"],covers:["home compostable"],link:"https://www.dincertco.de/en/dincertco/",tier:"B",warn:"Home/garden composting — NOT the same as industrial EN 13432. Quote the certificate number, and confirm it covers your exact grade and is still in date."},
+  {id:"flustix",type:"Plastic-free",label:"Flustix — Plastic-Free / Reduced-Plastic",note:"German voluntary plastic-content certification (used on Colombier cupstock)",i:["packaging","food","cosmetics"],covers:["plastic-free","plastic free"],link:"https://flustix.com/en/",tier:"B",warn:"Only the full “PLASTIC-FREE” mark substantiates “plastic-free” — the “LESS PLASTICS ≥90/98%” mark does NOT, and neither one proves SUP-compliance. Check the certificate names your EXACT board grade and is in date (Col-Cup's FPP055 was cancelled 30 Jun 2025; FPPC036 covers a different grade, EcoBarrier EASY)."},
+  {id:"pts_paper",type:"Recyclable",label:"PTS — Paper recyclability (PTS-RH 021, PAP21)",note:"paper/board recyclability trustmark (e.g. Colombier cert AB.0004182)",i:["food","packaging"],covers:["recyclable"],link:"https://www.ptspaper.com/en/",tier:"B",warn:"Certifies the fibre recycles as paper (PAP21) — a “recyclable” claim still needs PAP21 to be genuinely collected where the customer lives."},
+  {id:"recyclass",type:"Recyclable",label:"RecyClass — Recyclability Certification",note:"the European design-for-recycling scheme behind a defensible “recyclable” claim under the PPWR",i:["food","packaging","cosmetics"],covers:["recyclable"],link:"https://recyclass.eu/certifications/recyclability/",tier:"B",warn:"Certifies the packaging is designed to be recycled — a “recyclable” claim still needs it to be genuinely collected & recycled where the customer lives (PPWR). Does not by itself justify “100% recyclable”."},
+  {id:"okbiobased",type:"Bio-based",label:"OK biobased (TÜV Austria)",note:"certifies bio-based (renewable) content, 1–4 stars",i:["food","packaging"],covers:["plant-based"],link:"https://www.tuv-at.be/green-marks/certifications/ok-biobased/",tier:"B",warn:"Proves the % made from renewable material — it does NOT mean compostable or recyclable. State the star level / % rather than a bare “plant-based”."},
+  {id:"recycled_content",type:"Recycled",label:"RecyClass — Recycled Plastic Traceability",note:"audits recycled-content % through the supply chain",i:["food","packaging","cosmetics"],covers:[],link:"https://recyclass.eu/certifications/recycled-plastics/",tier:"B",warn:"Substantiates a “made with X% recycled plastic” figure — cite the audited percentage, not a vague “made from recycled materials”."},
+  {id:"c2c",type:"Circularity",label:"Cradle to Cradle Certified",note:"multi-attribute material-health & circularity standard",i:["packaging","cosmetics"],covers:[],link:"https://www.c2ccertified.org/",tier:"B",warn:"Multi-level (Bronze→Platinum) across several categories — cite the specific level and version, never a blanket “sustainable”."},
+  {id:"greendot",type:"Not a certification",label:"Der Grüne Punkt (Green Dot)",note:"the circled-arrows packaging mark",i:["packaging","food","cosmetics"],covers:[],link:"https://www.gruener-punkt.de/en/",tier:"C",warn:"NOT a sustainability, recyclability or compostability claim — it only means a packaging-recovery licence fee was paid in some countries. Never present it as a “green” credential."},
+  {id:"vegancert",type:"Vegan",label:"V-Label / Vegan Society Trademark",note:"the only real basis for “vegan” — it has no legal definition",i:["cosmetics","food"],covers:["vegan"],link:"https://www.v-label.com/",tier:"B"},
+  {id:"msc",type:"Sourcing",label:"MSC — Marine Stewardship Council",note:"wild-caught seafood · consumer-facing",i:["food"],covers:["responsibly sourced","ethically sourced"],link:"https://www.msc.org/",tier:"B",warn:"Needs Chain-of-Custody certification for anyone in the chain who wants to use the logo."},
+  {id:"asc",type:"Sourcing",label:"ASC — Aquaculture Stewardship Council",note:"farmed seafood · consumer-facing",i:["food"],covers:["responsibly sourced","ethically sourced"],link:"https://asc-aqua.org/",tier:"B",warn:"Needs Chain of Custody. In Icelandic salmon it is near-universal — table stakes, not a differentiator."},
+  {id:"keyhole",type:"Nutrition",label:"Skráargatið (Keyhole)",note:"Nordic ‘better choice’ nutrition label",i:["food"],covers:[],link:"https://www.livsmedelsverket.se/en/food-and-content/labelling/nyckelhalet",tier:"A",warn:"A “healthier choice within a category” mark — it does NOT make “healthy”, “superfood” or “detox” compliant; those remain regulated health claims."},
+  // Cosmetics
+  {id:"cosmos_org",type:"Organic",label:"COSMOS ORGANIC",note:"≥95% of agro-ingredients organic",i:["cosmetics"],covers:["organic","natural"],link:"https://www.cosmos-standard.org/",tier:"B"},
+  {id:"cosmos_nat",type:"Natural",label:"COSMOS NATURAL",note:"naturalness standard — earns only “natural”",i:["cosmetics"],covers:["natural"],link:"https://www.cosmos-standard.org/",tier:"B",warn:"Does NOT substantiate “organic” — a COSMOS NATURAL product calling itself organic is a claims breach."},
+  {id:"natrue_org",type:"Organic",label:"NATRUE — Organic level",note:"≥95% of natural ingredients organically farmed",i:["cosmetics"],covers:["organic","natural"],link:"https://natrue.org/",tier:"B"},
+  {id:"natrue_nat",type:"Natural",label:"NATRUE — Natural level",note:"natural cosmetics standard",i:["cosmetics"],covers:["natural"],link:"https://natrue.org/",tier:"B",warn:"The Natural level does NOT substantiate “organic” — only NATRUE Organic does."},
+  {id:"tun_cos",type:"Organic",label:"Vottunarstofan Tún — organic cosmetics",note:"Iceland's domestic organic-cosmetics route",scope:"IS",i:["cosmetics"],covers:["organic","natural"],link:"https://www.tun.is/lifraent",tier:"B"},
+  {id:"swan_cos",type:"Ecolabel",label:"Nordic Swan Ecolabel — cosmetics (090)",note:"highest Nordic consumer recognition",i:["cosmetics"],covers:[],link:"https://www.nordic-swan-ecolabel.org/criteria/cosmetic-products-090/",tier:"A",warn:"Environmental/health label — does NOT substantiate “organic”, “natural” or “vegan”."},
+  {id:"euecolabel_cos",type:"Ecolabel",label:"EU Ecolabel — cosmetics",note:"better for export than Nordic sales",i:["cosmetics"],covers:[],link:"https://environment.ec.europa.eu/topics/circular-economy/eu-ecolabel_en",tier:"A"},
+  {id:"leaping",type:"Animal welfare",label:"Leaping Bunny (Cruelty Free International)",note:"audited fixed cut-off date across your supply chain",i:["cosmetics"],covers:[],link:"https://crueltyfreeinternational.org/",tier:"B",warn:"Does NOT make the words “cruelty-free” safe in the EU — animal testing is already banned. Describe what was audited instead."}
+];
+
+/* Per-industry gotchas shown under the certificate list */
+const TRAPS={
+  farming:`<b>Two traps for farming:</b> ① <b>Origin marks prove provenance, not “green”</b> — “Íslenskt staðfest” shows it's Icelandic, not that it's greener. ② <b>“organic / lífrænt” is legally protected</b> — only valid with a Tún certificate.`,
+  cosmetics:`<b>Three traps for cosmetics:</b> ① <b>“Free-from” claims are restricted</b> — “paraben-free”, “preservative-free”, “no nasties” denigrate legal, safety-assessed ingredients. ② <b>COSMOS NATURAL ≠ organic</b> — only COSMOS ORGANIC, NATRUE Organic or Tún earn the word “organic”. ③ <b>“Cruelty-free” and sunscreen claims</b> (“sunblock”, “waterproof”, “total protection”) are restricted regardless of any certificate.`,
+  food:`<b>Three traps for food &amp; drink:</b> ① <b>Food-safety schemes are B2B</b> — HACCP, ISO 22000, BRCGS never go on consumer packaging (only MSC/ASC do). ② <b>Origin marks prove provenance, not “green”.</b> ③ <b>“Healthy”, “superfood”, “detox” are regulated health claims</b> — no certificate makes them compliant.`,
+  packaging:`<b>Four traps for packaging:</b> ① <b>“Compostable” needs EN 13432 + the certificate</b> — and in Iceland bioplastics go to general waste, so an unqualified claim misleads. ② <b>“Recyclable” only if it's genuinely collected &amp; recycled where the customer lives</b> (PPWR). ③ <b>Bare “biodegradable” is effectively banned</b>; “plastic-free” must be literally true, including any lining or coating. ④ <b>A supplier certificate only counts if it names your EXACT material grade and is still in date</b> — a “plastic-free” or compostable certificate can be cancelled, or issued for a different grade than the one you actually buy, so always verify grade + validity before publishing.`
+};
+
+const state={industry:null};
+
+function renderIndustries(){
+  $("industryRow").innerHTML=INDUSTRIES.map(i=>
+    `<button class="indbtn" data-ind="${i.id}"><span class="ico">${i.ico}</span><span><span class="t">${i.label}</span><span class="n">${i.note}</span></span><span class="chev">›</span></button>`).join("");
+}
+
+function selectIndustry(id){
+  state.industry=id;
+  document.querySelectorAll('.indbtn').forEach(b=>b.classList.toggle('sel',b.dataset.ind===id));
+  const ind=INDUSTRIES.find(x=>x.id===id)||{label:""};
+  const list=CERTS.filter(c=>c.i.includes(id));
+  const isCerts=list.filter(c=>c.scope==="IS");
+  const euCerts=list.filter(c=>c.scope!=="IS");
+  $("certPanelH").innerHTML=`Recognised certifications for <b>${ind.label.toLowerCase()}</b> — <b>Icelandic schemes first, then EU &amp; international</b>. Tick the ones you hold and we’ll mark those claims <b style="color:var(--ok)">green</b> when you scan.`;
+  const row=c=>`<label class="cred"><input type="checkbox" data-cert="${c.id}"><span><span class="lbl">${c.label}</span>${c.type?`<span class="certtype">${c.type}</span>`:''}${c.scope==="IS"?'<span class="tierIS">🇮🇸 Icelandic</span>':''}${c.tier==="A"?'<span class="tierA">public authority</span>':''}${c.tier==="C"?'<span class="tierC">not a certification</span>':''}${c.note?` <span class="cred-note">${c.note}</span>`:''}${c.warn?`<span class="warn">★ ${c.warn}</span>`:''}</span><a href="${c.link}" target="_blank" rel="noopener">info ↗</a></label>`;
+  const LIMIT=5;
+  let grid="";
+  if(list.length){
+    if(isCerts.length)grid+=`<div class="certgrouphdr first">🇮🇸 Icelandic</div>`+isCerts.map(row).join("");
+    if(euCerts.length){
+      grid+=`<div class="certgrouphdr${isCerts.length?'':' first'}">EU &amp; international</div>`;
+      if(euCerts.length>LIMIT+1){
+        const rest=euCerts.length-LIMIT;
+        grid+=euCerts.slice(0,LIMIT).map(row).join("");
+        grid+=`<div id="euMore" data-more="${rest}" style="display:none">`+euCerts.slice(LIMIT).map(row).join("")+`</div>`;
+        grid+=`<button type="button" class="btn-mini showmore" style="margin-top:.55rem">Show ${rest} more ↓</button>`;
+      } else {
+        grid+=euCerts.map(row).join("");
+      }
+    }
+  } else {
+    grid=`<p class="cred-note">No sector-specific schemes listed yet — you can still make honest, specific claims.</p>`;
+  }
+  $("credsGrid").innerHTML=grid;
+  $("trapNote").innerHTML=TRAPS[id]||'';
+  $("certPanel").style.display="block";
+  $("pickedCtx").textContent=ind.label?`Industry: ${ind.label} · Iceland — phrases your ticked certificates cover show green when you scan.`:'';
+  if($("summary").style.display==="block")scan(true);
+}
+
+function heldTerms(){const s=new Set();document.querySelectorAll('#credsGrid input[type=checkbox]:checked').forEach(cb=>{const c=CERTS.find(x=>x.id===cb.dataset.cert);if(c)c.covers.forEach(t=>s.add(t));});return s;}
+
 /* ---------- PASS 1: scan ---------- */
-function scan(){
+function scan(noScroll){
   const text=$("input").value;
   if(!text.trim()){$("summary").style.display="none";$("pass2").style.display="none";return;}
 
-  let html="",last=0,m;const counts={};let redN=0,amberN=0;
+  const held=heldTerms();
+  let html="",last=0,m;const counts={};let redN=0,amberN=0,backedN=0;
   RE.lastIndex=0;
   while((m=RE.exec(text))!==null){
     const raw=m[0],data=lookup[raw.toLowerCase()];
     html+=escapeHtml(text.slice(last,m.index));
     if(data){
-      html+=`<mark class="${data.tier}" title="${data.tier==='red'?'High risk':'Needs proof'}: ${escapeHtml(data.why)}">${escapeHtml(raw)}</mark>`;
+      const backed=held.has(data.t.toLowerCase());
+      const cls=backed?'ok':data.tier;
+      const ttl=backed?'Backed by your certification':(data.tier==='red'?'High risk':'Needs proof');
+      html+=`<mark class="${cls}" title="${ttl}: ${escapeHtml(backed?'You hold a certificate that can substantiate this.':data.why)}">${escapeHtml(raw)}</mark>`;
       const k=data.t.toLowerCase();
-      if(!counts[k]){counts[k]={data,n:0};if(data.tier==='red')redN++;else amberN++;}
+      if(!counts[k]){counts[k]={data,n:0,backed};if(backed)backedN++;else if(data.tier==='red')redN++;else amberN++;}
       counts[k].n++;
     } else {html+=escapeHtml(raw);}
     last=m.index+raw.length;
@@ -379,24 +668,39 @@ function scan(){
   $("meter").innerHTML=
     `<div class="pill red"><span class="n">${redN}</span> high-risk</div>`+
     `<div class="pill amber"><span class="n">${amberN}</span> needs proof</div>`+
-    `<div class="pill ok"><span class="n">${total===0?'✓':''}</span> ${total===0?'no flags found':'flagged: '+total}</div>`;
+    (backedN?`<div class="pill ok"><span class="n">${backedN}</span> ✓ backed by your certs</div>`:'')+
+    ((total===0&&!backedN)?`<div class="pill ok"><span class="n">✓</span> no flags found</div>`:'');
   const verdict=$("verdict");
-  if(total===0) verdict.textContent="No common risk phrases detected. Still worth a human check — wording and context matter.";
-  else if(redN>0) verdict.textContent=`Found ${redN} high-risk and ${amberN} “needs-proof” phrase${total>1?'s':''}. Several could be a problem from 27 Sept 2026.`;
-  else verdict.textContent=`No high-risk phrases, but ${amberN} claim${amberN>1?'s need':' needs'} specifics or proof.`;
+  if(total===0&&backedN===0) verdict.textContent="No common risk phrases detected. Still worth a human check — wording and context matter.";
+  else if(total===0&&backedN>0) verdict.textContent=`All ${backedN} flagged phrase${backedN>1?'s are':' is'} backed by your certifications — just show each certificate next to the claim.`;
+  else if(redN>0) verdict.textContent=`Found ${redN} high-risk and ${amberN} “needs-proof” phrase${total>1?'s':''}${backedN?` (${backedN} more already backed by your certs)`:''}. Several could be a problem from 27 Sept 2026.`;
+  else verdict.textContent=`No high-risk phrases, but ${amberN} claim${amberN>1?'s need':' needs'} specifics or proof${backedN?`; ${backedN} backed by your certs`:''}.`;
 
   const order={red:0,amber:1};
-  const items=Object.values(counts).sort((a,b)=>order[a.data.tier]-order[b.data.tier]);
+  const items=Object.values(counts).sort((a,b)=>{if(a.backed!==b.backed)return a.backed?1:-1;return order[a.data.tier]-order[b.data.tier];});
   lastFindings=items.map(i=>i.data);
   const f=$("findings");
   if(items.length===0){f.innerHTML=`<p class="empty">Nothing flagged. This only catches common patterns — a real audit reads for context too.</p>`;}
   else{
-    f.innerHTML=items.map(({data,n})=>`
+    f.innerHTML=items.map(({data,n,backed})=> backed
+      ? `
+      <div class="finding ok">
+        <div class="head">
+          <span class="term">${escapeHtml(data.t)}</span>
+          <span class="tag ok">✓ Backed</span>
+          <span class="tag cat">${escapeHtml(data.cat)}</span>
+          <span class="tag law" title="The rule that governs this word">§ ${escapeHtml(lawFor(data))}</span>
+          ${n>1?`<span class="tag count">×${n}</span>`:''}
+        </div>
+        <div class="why"><b>Backed by your certification.</b> You can substantiate this — just show the certificate name/number and scope next to the claim.</div>
+      </div>`
+      : `
       <div class="finding ${data.tier}">
         <div class="head">
           <span class="term">${escapeHtml(data.t)}</span>
           <span class="tag ${data.tier}">${data.tier==='red'?'High risk':'Needs proof'}</span>
           <span class="tag cat">${escapeHtml(data.cat)}</span>
+          <span class="tag law" title="The rule that governs this word">§ ${escapeHtml(lawFor(data))}</span>
           ${n>1?`<span class="tag count">×${n}</span>`:''}
         </div>
         <div class="why"><b>Why it's risky:</b> ${escapeHtml(data.why)}</div>
@@ -406,7 +710,7 @@ function scan(){
   $("pass2").style.display="none";$("pass3").style.display="none";
   $("stp1").classList.add("on");$("stp2").classList.remove("on");$("stp3").classList.remove("on");
   $("checkPageBtn").style.display="inline-block";
-  $("summary").scrollIntoView({behavior:"smooth",block:"start"});
+  if(!noScroll)$("summary").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 /* ---------- PASS 2: rewrite + schema + needs ---------- */
@@ -476,89 +780,179 @@ const SAMPLE_PAGE=`<!DOCTYPE html>
 </body>
 </html>`;
 
-function mk(state,label,det,fix){return{state,label,det,fix};}
+function mk(state,label,det,fix,w){return{state,label,det,fix,w:w||1};}
 
-function scanPage(){
-  const raw=$("pageHtml").value.trim();
-  if(!raw){return;}
-  // Guard: a pasted URL or plain text isn't HTML — this tool can't fetch a live site (CORS).
-  if(/^https?:\/\/\S+\s*$/i.test(raw) || !/</.test(raw)){
-    $("scoreN").textContent="—";
-    $("scoreLbl").textContent="";
-    $("scanList").innerHTML=`<li class="need" style="border:0"><span class="lbl">That looks like a web address, not HTML.</span><span class="fix" style="color:var(--ink-soft)">This tool can’t open a live URL — a static page is blocked from fetching other sites (CORS). To check a real page: open it → right-click → <b>View Page Source</b> → select all → copy → paste the whole thing here.</span></li>`;
-    $("scanResult").style.display="block";
-    $("stp2").classList.add("on");
-    return;
-  }
+/* Build the weighted findability checks from a page's HTML (+ optional robots/llms when live-fetched) */
+function analyze(raw,opts){
+  opts=opts||{};
   const doc=new DOMParser().parseFromString(raw,"text/html");
   const ld=[...doc.querySelectorAll('script[type="application/ld+json"]')];
   let ldParsed=0,ldText="";
   ld.forEach(s=>{ldText+=s.textContent;try{JSON.parse(s.textContent);ldParsed++;}catch(e){}});
   const checks=[];
 
-  checks.push(mk(
-    ld.length? (ldParsed?'have':'part'):'need',
-    'Structured data (JSON-LD)',
-    ld.length? (ldParsed?'Found and valid.':'A JSON-LD block exists but does not parse — fix the syntax.'):'None found — AI/Google have no structured facts to extract.',
-    'Add a <script type="application/ld+json"> block (Step 3 builds you a starter).'));
+  checks.push(mk(ld.length?(ldParsed?'have':'part'):'need','Structured data (JSON-LD)',
+    ld.length?(ldParsed?'Found and valid.':'A JSON-LD block exists but does not parse — fix the syntax.'):'None found — AI/Google have no structured facts to extract.',
+    'Add a <script type="application/ld+json"> block (Step 3 builds you a starter).',3));
 
   const hasEntity=/"@type"\s*:\s*"(Product|Organization|LocalBusiness|Service|Brand)"/i.test(ldText);
   checks.push(mk(hasEntity?'have':'need','Product / Organization entity',
     hasEntity?'A core entity type is declared.':'No Product/Organization type — the claim isn’t anchored to a thing.',
-    'Set "@type":"Product" (or Organization) in your JSON-LD.'));
+    'Set "@type":"Product" (or Organization) in your JSON-LD.',2));
 
   const hasCert=/hasCertification|"Certification"/i.test(ldText);
   checks.push(mk(hasCert?'have':'need','Certifications marked up (hasCertification)',
     hasCert?'Certification markup present — the rare, high-trust signal.':'No certification markup — your real credentials are invisible to machines.',
-    'Add hasCertification with the certifier name + certificate ID.'));
+    'Add hasCertification with the certifier name + certificate ID.',3));
 
-  const robots=doc.querySelector('meta[name="robots"]');
-  const noindex=robots&&/noindex/i.test(robots.getAttribute('content')||'');
-  checks.push(mk(noindex?'need':'have','Crawlable / indexable',
-    noindex?'Page is set to NOINDEX — engines are told to skip it.':'No noindex block found.',
-    'Remove noindex and make sure the page is in your sitemap.'));
-
-  const title=doc.querySelector('title'),desc=doc.querySelector('meta[name="description"]');
-  checks.push(mk((title&&desc)?'have':(title||desc)?'part':'need','Title &amp; meta description',
-    (title?'Title ✓ ':'Title ✗ ')+(desc?'Description ✓':'Description ✗'),
-    'Give the page a descriptive <title> and a meta description.'));
+  const hasCertId=hasCert&&/certificationIdentification|certificateIdentification|"identifier"\s*:/i.test(ldText);
+  checks.push(mk(hasCert?(hasCertId?'have':'part'):'need','Certificate number in the markup',
+    hasCert?(hasCertId?'A certificate identifier is present — machine-verifiable.':'Certification is marked up but carries no certificate number.'):'No certification markup to carry a number.',
+    'Add "certificationIdentification":"<your cert no.>" so it can be cross-checked against the registry.',2));
 
   const bodyText=(doc.body?doc.body.textContent:'').toLowerCase();
   const imgAlt=[...doc.querySelectorAll('img')].map(i=>i.getAttribute('alt')||'').join(' ').toLowerCase();
   RE.lastIndex=0;const inText=RE.test(bodyText);RE.lastIndex=0;const inImg=RE.test(imgAlt);
   checks.push(mk(inText?'have':(inImg?'part':'need'),'Green claims in readable text',
     inText?'Claims appear in real page text — crawlable.':inImg?'Claims found only in image alt text — weak; move them into the copy.':'No green claims detected in the page text.',
-    'Write claims as HTML text, not baked into product images.'));
+    'Write claims as HTML text, not baked into product images.',3));
+
+  const hasFaq=/"FAQPage"|"Question"|acceptedAnswer/i.test(ldText);
+  checks.push(mk(hasFaq?'have':'need','FAQ / Q&A schema',
+    hasFaq?'FAQ structured data found — the exact format answer-engines lift.':'No FAQ schema — add the buyer’s real questions with answers.',
+    'Add FAQPage JSON-LD, e.g. “Is this compostable? Yes — certified EN 13432 …”.',2));
 
   const hasSameAs=/sameAs/i.test(ldText);
-  const certLinks=[...doc.querySelectorAll('a')].some(a=>/(fsc\.org|tuv|ecolabel|vakinn|blueflag|green-key|msc\.org|fairtrade)/i.test(a.getAttribute('href')||''));
-  checks.push(mk((hasSameAs||certLinks)?'have':'part','Trust links to the certifier',
+  const certLinks=[...doc.querySelectorAll('a')].some(a=>/(fsc\.org|pefc|tuv|tun\.is|ecolabel|vakinn|blueflag|green-?key|msc\.org|asc-aqua|fairtrade|regenagri|agreenerworld|recyclass|flustix|demeter|natrue|cosmos-standard|nongmoproject|skogarkolefni)/i.test(a.getAttribute('href')||''));
+  checks.push(mk((hasSameAs||certLinks)?'have':'need','Trust links to the certifier / registry',
     (certLinks?'Links to a certifier/registry found. ':'')+(hasSameAs?'sameAs present.':(certLinks?'':'No links to a certifier or official registry.')),
-    'Link to your certificate on the issuer/registry site, and add sameAs.'));
+    'Link to your certificate on the issuer/registry site, and add sameAs.',2));
 
-  const have=checks.filter(c=>c.state==='have').length;
-  $("scoreN").textContent=have+"/"+checks.length;
-  $("scoreLbl").textContent=have>=6?'Strong — very findable.':have>=4?'Partly findable — a few quick wins.':'Weak — your real credentials are hard to find.';
+  const title=doc.querySelector('title'),desc=doc.querySelector('meta[name="description"]');
+  checks.push(mk((title&&desc)?'have':(title||desc)?'part':'need','Title &amp; meta description',
+    (title?'Title ✓ ':'Title ✗ ')+(desc?'Description ✓':'Description ✗'),
+    'Give the page a descriptive <title> and a meta description.',1));
+
+  const robotsMeta=doc.querySelector('meta[name="robots"]');
+  const noindex=robotsMeta&&/noindex/i.test(robotsMeta.getAttribute('content')||'');
+  checks.push(mk(noindex?'need':'have','Crawlable / indexable',
+    noindex?'Page is set to NOINDEX — engines are told to skip it.':'No noindex block found.',
+    'Remove noindex and make sure the page is in your sitemap.',2));
+
+  const canonical=doc.querySelector('link[rel="canonical"]');
+  const lang=(doc.documentElement&&doc.documentElement.getAttribute('lang'))||doc.querySelector('[hreflang]');
+  checks.push(mk((canonical&&lang)?'have':(canonical||lang)?'part':'need','Canonical URL &amp; language',
+    (canonical?'Canonical ✓ ':'Canonical ✗ ')+(lang?'Language/hreflang ✓':'Language/hreflang ✗'),
+    'Add <link rel="canonical"> and set html lang (is/en) — one stable URL per claim.',1));
+
+  const og=['og:title','og:description','og:image'].filter(prop=>doc.querySelector('meta[property="'+prop+'"]')).length;
+  checks.push(mk(og>=2?'have':(og>=1?'part':'need'),'Social / Open Graph preview',
+    og+' of 3 Open Graph tags present.',
+    'Add og:title, og:description and og:image for clean AI/social previews.',1));
+
+  // ---- live-only checks (require a URL fetch) ----
+  if(opts.live){
+    const rb=opts.robots||'';
+    const blocksAI=/user-agent:\s*(gptbot|google-extended|ccbot|claudebot|claude-web|perplexitybot|oai-searchbot|bytespider)[\s\S]*?disallow:\s*\/\s*(\n|$)/i.test(rb);
+    checks.push(mk(blocksAI?'need':'have','AI crawlers allowed (robots.txt)',
+      blocksAI?'robots.txt blocks one or more AI crawlers (GPTBot / Google-Extended / …).':(opts.robots?'robots.txt does not block AI crawlers.':'No robots.txt found — AI crawlers are allowed by default.'),
+      'Allow GPTBot, Google-Extended, ClaudeBot & PerplexityBot in robots.txt if you want to be cited.',2));
+    checks.push(mk(opts.llms?'have':'need','llms.txt for AI',
+      opts.llms?'An llms.txt file is published — an emerging AI-guidance signal.':'No llms.txt found — optional, but an easy emerging edge.',
+      'Add /llms.txt summarising your key pages & claims for AI models.',1));
+  } else {
+    checks.push(mk('na','AI crawlers allowed (robots.txt)','Live-fetch only.','Use “Fetch & scan” above to test AI-crawler access.',2));
+    checks.push(mk('na','llms.txt for AI','Live-fetch only.','Use “Fetch & scan” above to check.',1));
+  }
+
+  const earned=checks.reduce((s,c)=>s+(c.state==='have'?c.w:c.state==='part'?c.w*0.5:0),0);
+  const applic=checks.reduce((s,c)=>s+(c.state==='na'?0:c.w),0);
+  const haveN=checks.filter(c=>c.state==='have').length;
+  const applicN=checks.filter(c=>c.state!=='na').length;
+  const pct=applic?Math.round(earned/applic*100):0;
+  $("scoreN").textContent=pct+"%";
+  $("scoreLbl").textContent=(pct>=80?'Strong — very findable.':pct>=50?'Partly findable — a few quick wins.':'Weak — your real credentials are hard to find.')+`  (${haveN}/${applicN} signals${opts.live?' · live fetch':''})`;
   $("scanList").innerHTML=checks.map(c=>
-    `<li class="${c.state}"><span class="lbl">${c.label}</span> — <span class="det">${c.det}</span><span class="fix">Fix: ${c.fix}</span></li>`).join("");
+    `<li class="${c.state}"><span class="lbl">${c.label}</span> — <span class="det">${escapeHtml(c.det)}</span><span class="fix">Fix: ${escapeHtml(c.fix)}</span></li>`).join("");
   $("scanResult").style.display="block";
   $("stp2").classList.add("on");
   $("scanResult").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function urlLike(s){return /^https?:\/\/\S+$/i.test(s)||(!/</.test(s)&&!/\s/.test(s)&&/\.[a-z]{2,}(\/|$|\?)/i.test(s));}
+
+function scanPaste(){
+  const raw=$("pageHtml").value.trim();
+  if(!raw)return;
+  if(urlLike(raw)){
+    $("scoreN").textContent="—";$("scoreLbl").textContent="";
+    $("scanList").innerHTML=`<li class="need" style="border:0"><span class="lbl">That looks like a web address, not HTML.</span><span class="fix" style="color:var(--ink-soft)">Use the <b>Fetch &amp; scan</b> box above to check a live URL, or paste the actual HTML source here (open the page → right-click → <b>View Page Source</b> → select all → copy).</span></li>`;
+    $("scanResult").style.display="block";$("stp2").classList.add("on");return;
+  }
+  analyze(raw,{live:false});
+}
+
+/* live fetch through public CORS proxies (with fallback) */
+const PROXIES=[
+  u=>({url:`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,json:true}),
+  u=>({url:`https://corsproxy.io/?url=${encodeURIComponent(u)}`,json:false}),
+  u=>({url:`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,json:false}),
+  u=>({url:`https://thingproxy.freeboard.io/fetch/${u}`,json:false})
+];
+async function proxyFetch(u){
+  for(const mkp of PROXIES){
+    const p=mkp(u);
+    try{
+      const r=await fetch(p.url,{redirect:'follow'});
+      if(!r.ok)continue;
+      if(p.json){const j=await r.json();return {body:j.contents||'',code:(j.status&&j.status.http_code)||200};}
+      return {body:await r.text(),code:r.status};
+    }catch(e){}
+  }
+  return null;
+}
+function setFetching(on,msg){
+  const b=$("scanUrlBtn");b.disabled=on;b.textContent=on?'Fetching…':'Fetch & scan →';
+  const s=$("fetchStatus");if(on&&msg){s.style.display='block';s.textContent=msg;}else{s.style.display='none';}
+}
+function showScanErr(msg){
+  $("scoreN").textContent="—";$("scoreLbl").textContent="";
+  $("scanList").innerHTML=`<li class="need" style="border:0"><span class="lbl">${msg}</span></li>`;
+  $("scanResult").style.display="block";$("stp2").classList.add("on");
+  $("scanResult").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+async function scanUrl(){
+  let u=$("pageUrl").value.trim();
+  if(!u){$("pageUrl").focus();return;}
+  if(!/^https?:\/\//i.test(u))u='https://'+u;
+  let origin;try{origin=new URL(u).origin;}catch(e){showScanErr('That doesn’t look like a valid web address.');return;}
+  setFetching(true,'Fetching the page through a proxy…');
+  const main=await proxyFetch(u);
+  if(!main||!main.body||main.code>=400||!/</.test(main.body)){setFetching(false);showScanErr('Could not fetch that page (it may block proxies, need a login, or be offline). Paste the HTML source below instead.');return;}
+  setFetching(true,'Reading robots.txt &amp; llms.txt…');
+  const rb=await proxyFetch(origin+'/robots.txt');
+  const lm=await proxyFetch(origin+'/llms.txt');
+  setFetching(false);
+  const robots=(rb&&rb.code<400&&/\S/.test(rb.body)&&!/<html/i.test(rb.body))?rb.body:null;
+  const llms=(lm&&lm.code<400&&/\S/.test(lm.body)&&!/<html/i.test(lm.body))?lm.body:null;
+  analyze(main.body,{live:true,origin,robots,llms});
 }
 
 /* ---------- wiring ---------- */
 $("scanBtn").addEventListener("click",scan);
 $("checkPageBtn").addEventListener("click",()=>{$("pass3").style.display="block";$("stp2").classList.add("on");$("checkPageBtn").scrollIntoView({behavior:"smooth",block:"start"});});
 $("rewriteBtn").addEventListener("click",()=>{pass2();$("rewriteBtn").scrollIntoView({behavior:"smooth",block:"start"});});
-$("scanPageBtn").addEventListener("click",scanPage);
-$("clearPageBtn").addEventListener("click",()=>{$("pageHtml").value="";$("scanResult").style.display="none";$("pageHtml").focus();});
-$("samplePageBtn").addEventListener("click",()=>{$("pageHtml").value=SAMPLE_PAGE;scanPage();});
+$("scanPageBtn").addEventListener("click",scanPaste);
+$("scanUrlBtn").addEventListener("click",scanUrl);
+$("pageUrl").addEventListener("keydown",e=>{if(e.key==="Enter")scanUrl();});
+$("clearPageBtn").addEventListener("click",()=>{$("pageHtml").value="";$("pageUrl").value="";$("scanResult").style.display="none";$("pageUrl").focus();});
+$("samplePageBtn").addEventListener("click",()=>{$("pageHtml").value=SAMPLE_PAGE;scanPaste();});
 
 // top step rail — click to jump straight to a step
 $("stp1").addEventListener("click",()=>{$("card1").scrollIntoView({behavior:"smooth",block:"start"});});
 $("stp2").addEventListener("click",()=>{if($("summary").style.display!=="block")scan();$("pass3").style.display="block";$("stp2").classList.add("on");$("checkPageBtn").scrollIntoView({behavior:"smooth",block:"start"});});
 $("stp3").addEventListener("click",()=>{if($("summary").style.display!=="block")scan();$("pass3").style.display="block";$("stp2").classList.add("on");pass2();$("rewriteBtn").scrollIntoView({behavior:"smooth",block:"start"});});
-$("sampleBtn").addEventListener("click",()=>{$("input").value=SAMPLE;scan();});
+$("exampleSelect").addEventListener("change",e=>{const v=e.target.value;if(!v)return;$("input").value=SAMPLES[v]||SAMPLE;if(v!=="is"&&INDUSTRIES.find(x=>x.id===v))selectIndustry(v);scan();});
 $("clearBtn").addEventListener("click",()=>{$("input").value="";$("summary").style.display="none";$("pass2").style.display="none";$("input").focus();});
 $("copySchema").addEventListener("click",()=>{
   navigator.clipboard&&navigator.clipboard.writeText($("schema").textContent);
@@ -570,8 +964,32 @@ $("dossierLink").setAttribute("href",DOSSIER_URL);
 $("contactLink").setAttribute("href",CONTACT_URL);
 $("brandFoot").textContent=BRAND;
 
-// preload sample
-$("input").value=SAMPLE;
+// industry picker + certificates panel (Iceland)
+renderIndustries();
+$("industryRow").addEventListener("click",e=>{const b=e.target.closest(".indbtn");if(!b)return;selectIndustry(b.dataset.ind);});
+// Record the scroll position at the instant of the click — BEFORE the browser
+// can nudge the newly-focused checkbox into view — then re-score and snap back.
+let lockY=null;
+$("card0").addEventListener("pointerdown",()=>{lockY=window.pageYOffset;},true);
+function rescanKeepPos(){
+  if($("summary").style.display!=="block")return;
+  const y=(lockY!=null)?lockY:window.pageYOffset;
+  scan(true);
+  const put=()=>window.scrollTo(0,y);
+  put();
+  requestAnimationFrame(put);
+  requestAnimationFrame(()=>requestAnimationFrame(put));
+  setTimeout(put,0);
+  setTimeout(put,60);
+}
+$("credsGrid").addEventListener("change",rescanKeepPos);
+$("credsGrid").addEventListener("click",e=>{const t=e.target.closest(".showmore");if(!t)return;const more=document.getElementById("euMore");if(!more)return;const open=more.style.display==="none";more.style.display=open?"block":"none";t.textContent=open?"Show fewer ↑":`Show ${more.dataset.more} more ↓`;});
+$("allCerts").addEventListener("click",()=>{lockY=window.pageYOffset;document.querySelectorAll('#credsGrid input[type=checkbox]').forEach(cb=>cb.checked=true);rescanKeepPos();});
+$("noCerts").addEventListener("click",()=>{lockY=window.pageYOffset;document.querySelectorAll('#credsGrid input[type=checkbox]').forEach(cb=>cb.checked=false);rescanKeepPos();});
+
+// preload: open Farming (Iceland) and a farm example, to match the current focus
+selectIndustry("farming");
+$("input").value=SAMPLE_FARM;
 </script>
 </body>
 </html>
