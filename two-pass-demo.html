@@ -45,7 +45,8 @@
     font:inherit;font-size:.98rem;background:#FCFDFB;color:var(--ink);resize:vertical;line-height:1.6}
   textarea:focus{outline:none;border-color:var(--leaf)}
   .row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-top:.9rem}
-  button{font:inherit;font-weight:600;font-size:.97rem;border-radius:999px;border:1.5px solid transparent;cursor:pointer;padding:.7rem 1.4rem;transition:.2s;scroll-margin-top:18px}
+  button,a.btn{font:inherit;font-weight:600;font-size:.97rem;border-radius:999px;border:1.5px solid transparent;cursor:pointer;padding:.7rem 1.4rem;transition:.2s;scroll-margin-top:18px}
+  a.btn{display:inline-block;text-decoration:none;text-align:center}
   .btn-primary{background:var(--leaf);color:#fff}
   .btn-primary:hover{background:var(--leaf-deep)}
   .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink-soft)}
@@ -330,8 +331,8 @@
     <p>The studio shows the pattern on one block of text. A real engagement reviews every channel, matches each claim to your actual certificates, writes the drop-in copy, and delivers a branded dossier + the search-optimised proof page.</p>
     <div style="text-align:center;margin-bottom:.4rem"><span class="samplecap">↓ Example — not a live scan</span></div>
     <div class="row" style="justify-content:center">
-      <a id="dossierLink" href="sample-dossier.html"><button class="btn-sample btn-big">See a sample dossier (example) →</button></a>
-      <a id="contactLink" href="#"><button class="btn-primary btn-big">Get your audit</button></a>
+      <a id="dossierLink" href="sample-dossier.html" class="btn btn-sample btn-big">See a sample dossier (example) →</a>
+      <a id="contactLink" href="#" class="btn btn-primary btn-big">Get your audit</a>
     </div>
     <div class="disclaimer" style="margin-top:1rem">⚠️ This is a claims-hygiene helper, not legal advice. It flags common risk patterns under Directive (EU) 2024/825 (ECGT) and related packaging/consumer rules and points to the standards typically used to substantiate them; it does not certify legal compliance. For high-stakes claims, confirm with a qualified specialist or lawyer. <b>In Iceland (EEA), the ECGT is not yet transposed — but misleading environmental claims are already actionable today under existing consumer law (Act 57/2005).</b></div>
   </section>
